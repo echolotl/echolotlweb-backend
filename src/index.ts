@@ -2,6 +2,7 @@ import { Elysia, InvertedStatusMap } from "elysia";
 import { Logger } from "./util/logger";
 import { spotifyRouter } from "./spotify";
 import { file } from "bun";
+import cors from "@elysiajs/cors";
 
 const app = new Elysia()
   .onRequest(({ request }) => {
@@ -14,6 +15,16 @@ const app = new Elysia()
       );
     }
   })
+  .use(cors({
+    origin: [
+      "https://echolotl.lol",
+      "https://www.echolotl.lol",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+    ],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Passkey"]
+  }))
   .use(spotifyRouter)
   .get("/", () => new Response(file("./src/assets/index.html"), {
     headers: {
