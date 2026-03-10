@@ -1,5 +1,10 @@
-app = 'echolotlweb-backend'
-primary_region = 'dfw'
+# fly.toml app configuration file generated for echolotl-status on 2026-03-10T04:28:09Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'echolotl-status'
+primary_region = 'iad'
 
 [build]
 
@@ -15,4 +20,4 @@ primary_region = 'dfw'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 256
+  memory_mb = 1024
