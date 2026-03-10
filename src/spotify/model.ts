@@ -137,6 +137,7 @@ export type SpotifyEpisode = {
 };
 
 export type CurrentlyPlayingResponse = {
+  is_playing: boolean;
   device: {
     id: string | null;
     is_active: boolean;
