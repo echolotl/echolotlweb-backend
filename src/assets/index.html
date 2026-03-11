@@ -1,52 +1,220 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>echolotl.lol api</title>
-        <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico" >
-        <link rel="stylesheet" href="/assets/index.css" />
-    </head>
-    <body>
-        <div class="header">
-            <div>
-        <h1><a href="https://www.echolotl.lol/" rel="noopener noreferrer" target="_blank">echolotl.lol</a> backend API thing</h1>
-        
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>echolotl.lol api</title>
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico" />
+    <link rel="stylesheet" href="/assets/index.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=lock" />
+    <style>
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 1,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
+</style>
+  </head>
+  <body>
+    <div class="header">
+      <div>
+        <h1>
+          <a
+            href="https://www.echolotl.lol/"
+            rel="noopener noreferrer"
+            target="_blank"
+            >echolotl.lol</a
+          >
+          backend API thing
+        </h1>
+
         <p>
-            Hello! This is the backend API for <a href="https://www.echolotl.lol/">echolotl.lol</a>. You can use these endpoints however you like, but <i>please</i> don't abuse them. <s>There are rate limits.</s><br/><br/>
-            This is a mega WIP as I learn Elysia and backend stuff. You can view the source code <a href="https://github.com/echolotl/echolotlweb-backend">here</a>.
+          Hello! This is the backend API for
+          <a href="https://www.echolotl.lol/">echolotl.lol</a>. You can use
+          these endpoints however you like, but <i>please</i> don't abuse them.
+          <s>There are rate limits.</s><br /><br />
+          This is a mega WIP as I learn Elysia and backend stuff. You can view
+          the source code
+          <a href="https://github.com/echolotl/echolotlweb-backend">here</a>.
         </p>
-        <small>Last updated <b>3/9/2026</b>.</small>
-        </div>
-        <aside style="display: flex; align-items: flex-end;">
-            <img src="/assets/images/omgglory.png" alt="echolotl.lol logo" height="256" />
-        </aside>
-        </div>
-        <hr />
-        <h2>Documentation</h2>
-        <ul>
-            <li>
-                <details class="route">
-                    <summary>
-                        <div><code class="get">GET</code> <code><a href="/spotify">/spotify</a></code><div class="description">Gets echolotl's current playing song on Spotify.</div></div>
-                    </summary>
-                    <info>
-                        <p>Gets echolotl's current playing song on Spotify.</p>
-                        <h4>Returns</h4>
-                        <details>
-                            <summary><code>200 OK</code></summary>
-                            <info><p>Provides a stripped down version of <a href="https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback" rel="noopener noreferrer" target="_blank">Spotify's current playback information</a>.
-                                <br/>
-                            Omitted fields include: <code>actions</code>, <code>device</code>, <code>repeat_state</code>, <code>shuffle_state</code>, and <code>context</code>.
-                            </p></info>
-                        </details>
-                        <details>
-                            <summary><code>204 No Content</code></summary>
-                            <info>Returns if echolotl is not currently playing anything on Spotify.</info>
-                        </details>
-                    </info>
-                </details>
-            </li>
-        </ul>   
-    </body>
+        <small>Last updated <b>3/10/2026</b>.</small>
+      </div>
+      <aside style="display: flex; align-items: flex-end">
+        <img
+          src="/assets/images/omgglory.png"
+          alt="echolotl.lol logo"
+          height="256"
+        />
+      </aside>
+    </div>
+    <hr />
+    <h2>Documentation</h2>
+    <ul>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code><a href="/spotify">/spotify</a></code>
+              <div class="description">
+                Gets echolotl's current playing song on Spotify.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>Gets echolotl's current playing song on Spotify.</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><code>200 OK</code></summary>
+              <info
+                ><p>
+                  Provides a stripped down version of
+                  <a
+                    href="https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    >Spotify's current playback information</a
+                  >.
+                  <br />
+                  Omitted fields include: <code>actions</code>,
+                  <code>device</code>, <code>repeat_state</code>,
+                  <code>shuffle_state</code>, and <code>context</code>.
+                </p></info
+              >
+            </details>
+            <details>
+              <summary><code>204 No Content</code></summary>
+              <info
+                >Returns if echolotl is not currently playing anything on
+                Spotify.</info
+              >
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code><a href="/status">/status</a></code>
+              <div class="description">Gets echolotl's latest status.</div>
+            </div>
+          </summary>
+          <info>
+            <p>Gets echolotl's latest status.</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><code>200 OK</code></summary>
+              <info>
+                <p>Returns the latest status object.</p>
+                <h5>Example</h5>
+                <pre>
+{
+  "text": "sleepy",
+  "emoji": "😴",
+  "createdAt": 1741553075123
+}               
+                </pre>
+              </info>
+            </details>
+            <details>
+              <summary><code>204 No Content</code></summary>
+              <info
+                >Returns when no status has been set yet. (Which probably means
+                that the database got deleted. Whoops!)</info
+              >
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code><a href="/status/history">/status/history</a></code>
+              <div class="description">Gets recent status history.</div>
+            </div>
+          </summary>
+          <info>
+            <p>Gets recent statuses, newest first.</p>
+            <h4>Query Parameters</h4>
+            <p>
+              <code>limit</code> (optional number): Number of statuses to
+              return. Defaults to <code>10</code>.
+            </p>
+            <h4>Returns</h4>
+            <details>
+              <summary><code>200 OK</code></summary>
+              <info>
+                <p>Returns a list of statuses and the count returned.</p>
+                <pre>
+{
+  "total": 2,
+  "statuses": [
+    {
+      "text": "coding",
+      "emoji": "🧠",
+      "createdAt": 1741553075123
+    },
+    {
+      "text": "lunch",
+      "emoji": null,
+      "createdAt": 1741549075123
+    }
+  ]
+}
+                </pre>
+              </info>
+            </details>
+            <details>
+              <summary><code>204 No Content</code></summary>
+              <info>Returns when no statuses are available.</info>
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="post">POST</code> <code>/status</code>
+              <span class="material-symbols-outlined auth">lock</span>
+              <div class="description">Sets a new status.</div>
+            </div>
+          </summary>
+          <info>
+            <p>Creates a new status entry.</p>
+            <h4>Headers</h4>
+            <p><code>Authorization</code>: required passkey token.</p>
+            <h4>Body</h4>
+            <pre>
+{
+  "text": "string (1-100 chars)",
+  "emoji": "emoji (optional, nullable)"
+}
+            </pre>
+            <h4>Returns</h4>
+            <details>
+              <summary><code>200 OK</code></summary>
+              <info
+                >Returns a confirmation text string with the new status.</info
+              >
+            </details>
+            <details>
+              <summary><code>401 Unauthorized</code></summary>
+              <info>Missing <code>Authorization</code> header.</info>
+            </details>
+            <details>
+              <summary><code>403 Forbidden</code></summary>
+              <info>Provided passkey is invalid.</info>
+            </details>
+          </info>
+        </details>
+      </li>
+    </ul>
+  </body>
 </html>

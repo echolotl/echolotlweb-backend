@@ -1,10 +1,26 @@
 import { Elysia, InvertedStatusMap } from "elysia";
 import { Logger } from "./util/logger";
 import { spotifyRouter } from "./spotify";
+import { statusRouter } from "./status";
 import { file } from "bun";
 import cors from "@elysiajs/cors";
 
-const app = new Elysia()
+const ALLOWED_ORIGINS = [
+  "https://echolotl.lol",
+  "https://www.echolotl.lol",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
+
+const fileRouter = new Elysia().get("/assets/*", ({ params }) => {
+    const requestedPath = params["*"];
+    const filePath = `./src/assets/${requestedPath}`;
+    return new Response(file(filePath), {
+        headers: { "Content-Type": file(filePath).type },
+    });
+});
+
+const app = new Elysia().use(cors({ origin: ALLOWED_ORIGINS}))
   .onRequest(({ request }) => {
     Logger.dim(`${request.method} ${request.url}`);
   })
@@ -15,29 +31,14 @@ const app = new Elysia()
       );
     }
   })
-  .use(cors({
-    origin: [
-      "https://echolotl.lol",
-      "https://www.echolotl.lol",
-      "http://localhost:3000",
-      "http://127.0.0.1:3000",
-    ],
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Passkey"]
-  }))
   .use(spotifyRouter)
+  .use(statusRouter)
+  .use(fileRouter)
   .get("/", () => new Response(file("./src/assets/index.html"), {
     headers: {
       "Content-Type": "text/html",
     },
   }))
-  .get("/assets/*", ({ params }) => {
-    const requestedPath = params["*"];
-    const filePath = `./src/assets/${requestedPath}`;
-    return new Response(file(filePath), {
-      headers: { "Content-Type": file(filePath).type },
-    });
-  })
   .listen(3000);
 
 Logger.statement(

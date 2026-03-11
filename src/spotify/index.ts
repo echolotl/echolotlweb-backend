@@ -1,13 +1,16 @@
 import { Elysia } from "elysia";
+import cors from "@elysiajs/cors";
 import { EcholotlSpotifyPlayback } from "./model";
 import { getCurrentSpotifyPlayback } from "./service";
 
-export const spotifyRouter = new Elysia({ prefix: "/spotify" }).get(
+export const spotifyRouter = new Elysia({ prefix: "/spotify" })
+  .use(cors({ methods: ["GET"] }))
+  .get(
   "/",
   async () => {
     const playback = await getCurrentSpotifyPlayback();
     if (!playback) {
-      return new Response("No active Spotify playback found", { status: 204 });
+      return new Response(null, { status: 204 });
     }
 
     const {
