@@ -8,7 +8,7 @@ RUN bun install --frozen-lockfile
 COPY . .
 
 ENV NODE_ENV=production
-ENV DB_PATH=/data/status.db
+ENV DB_PATH=/data/main.db
 
 EXPOSE 3000
 

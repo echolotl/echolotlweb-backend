@@ -2,7 +2,7 @@ import { Database } from "bun:sqlite";
 import type { SpotifyTokenRecord } from "./spotify/model";
 import type { Status } from "./status/model";
 
-const db = new Database("./data/main.db");
+const db = new Database(process.env.DB_PATH ?? "/data/main.db");
 
 // init
 db.run(`
