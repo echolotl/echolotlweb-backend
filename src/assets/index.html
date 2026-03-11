@@ -5,74 +5,15 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>echolotl.lol api</title>
         <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico" >
-        <style>
-            body {
-                background: #222;
-                color: #eee;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-                max-width: 1000px;
-                margin: 0 auto;
-                padding: 2em;
-            }
-            h1, h2, h3, h4, h5, h6 {
-                line-height: 1.2;
-            }
-            h1, h2 {
-                color: #da39a4;
-            }
-            p {
-                line-height: 1.4;
-                margin-bottom: 0;
-            }
-            small {
-                display: block;
-                color: #999;
-
-                margin: 1rem 0;
-            }
-            s {
-                color: #999;
-            }
-            code {
-                background: #333;
-                padding: 0.2em 0.4em;
-                border-radius: 4px;
-            }
-            a {
-                color: #da39a4;
-                text-decoration: none;
-            }
-            a:hover {
-                text-decoration: underline;
-            }
-            a:visited {
-                color: #da39a4;
-            }
-            hr {
-                border: none;
-                border-top: 1px solid #333;
-                margin: 0;
-            }
-            .header {
-                display:flex; flex-direction: row; align-items: flex-end;
-            }
-            @media (max-width: 500px) {
-                .header {
-                    flex-direction: column;
-                }
-                .header img {
-                    display: none;
-                }
-            }
-        </style>
+        <link rel="stylesheet" href="/assets/index.css" />
     </head>
     <body>
         <div class="header">
             <div>
-        <h1><a href="https://www.echolotl.lol/">echolotl.lol</a> backend API thing</h1>
+        <h1><a href="https://www.echolotl.lol/" rel="noopener noreferrer" target="_blank">echolotl.lol</a> backend API thing</h1>
         
         <p>
-            This is the backend API for <a href="https://www.echolotl.lol/">echolotl.lol</a>. You can use these endpoints however you like, but <i>please</i> don't abuse them. <s>There are rate limits.</s><br/><br/>
+            Hello! This is the backend API for <a href="https://www.echolotl.lol/">echolotl.lol</a>. You can use these endpoints however you like, but <i>please</i> don't abuse them. <s>There are rate limits.</s><br/><br/>
             This is a mega WIP as I learn Elysia and backend stuff. You can view the source code <a href="https://github.com/echolotl/echolotlweb-backend">here</a>.
         </p>
         <small>Last updated <b>3/9/2026</b>.</small>
@@ -82,12 +23,29 @@
         </aside>
         </div>
         <hr />
-        <h2>Endpoints</h2>
-        <h3>Spotify</h3>
+        <h2>Documentation</h2>
         <ul>
-            
             <li>
-                <code><a href="/spotify">/spotify</a></code> - Gets echolotl's current Spotify status.
+                <details class="route">
+                    <summary>
+                        <div><code class="get">GET</code> <code><a href="/spotify">/spotify</a></code><div class="description">Gets echolotl's current playing song on Spotify.</div></div>
+                    </summary>
+                    <info>
+                        <p>Gets echolotl's current playing song on Spotify.</p>
+                        <h4>Returns</h4>
+                        <details>
+                            <summary><code>200 OK</code></summary>
+                            <info><p>Provides a stripped down version of <a href="https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback" rel="noopener noreferrer" target="_blank">Spotify's current playback information</a>.
+                                <br/>
+                            Omitted fields include: <code>actions</code>, <code>device</code>, <code>repeat_state</code>, <code>shuffle_state</code>, and <code>context</code>.
+                            </p></info>
+                        </details>
+                        <details>
+                            <summary><code>204 No Content</code></summary>
+                            <info>Returns if echolotl is not currently playing anything on Spotify.</info>
+                        </details>
+                    </info>
+                </details>
             </li>
         </ul>   
     </body>
