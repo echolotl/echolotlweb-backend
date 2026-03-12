@@ -1,8 +1,13 @@
 import { Database } from "bun:sqlite";
 import type { SpotifyTokenRecord } from "./spotify/model";
 import type { Status } from "./status/model";
+const dbPath = () => {
+	const devEnv = process.env.NODE_ENV === "development";
+	const defaultPath = devEnv ? "./data/dev.db" : "./data/main.db";
+	return process.env.DB_PATH ?? defaultPath;
 
-const db = new Database(process.env.DB_PATH ?? "/data/main.db");
+}
+const db = new Database(dbPath());
 
 // init
 db.run(`

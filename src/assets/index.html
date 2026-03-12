@@ -6,16 +6,19 @@
     <title>echolotl.lol api</title>
     <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico" />
     <link rel="stylesheet" href="/assets/index.css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=lock" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=lock"
+    />
     <style>
-.material-symbols-outlined {
-  font-variation-settings:
-  'FILL' 1,
-  'wght' 400,
-  'GRAD' 0,
-  'opsz' 24
-}
-</style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    </style>
   </head>
   <body>
     <div class="header">
@@ -34,7 +37,7 @@
           Hello! This is the backend API for
           <a href="https://www.echolotl.lol/">echolotl.lol</a>. You can use
           these endpoints however you like, but <i>please</i> don't abuse them.
-          <s>There are rate limits.</s><br /><br />
+          There are rate limits.<br /><br />
           This is a mega WIP as I learn Elysia and backend stuff. You can view
           the source code
           <a href="https://github.com/echolotl/echolotlweb-backend">here</a>.
@@ -65,6 +68,8 @@
           </summary>
           <info>
             <p>Gets echolotl's current playing song on Spotify.</p>
+            <h4>Rate Limit</h4>
+            <p>15 requests over 1 minute</p>
             <h4>Returns</h4>
             <details>
               <summary><code>200 OK</code></summary>
@@ -81,8 +86,8 @@
                   Omitted fields include: <code>actions</code>,
                   <code>device</code>, <code>repeat_state</code>,
                   <code>shuffle_state</code>, and <code>context</code>.
-                </p></info
-              >
+                </p>
+              </info>
             </details>
             <details>
               <summary><code>204 No Content</code></summary>
@@ -105,6 +110,8 @@
           </summary>
           <info>
             <p>Gets echolotl's latest status.</p>
+            <h4>Rate Limit</h4>
+            <p>15 requests over 2 minutes</p>
             <h4>Returns</h4>
             <details>
               <summary><code>200 OK</code></summary>
@@ -116,8 +123,7 @@
   "text": "sleepy",
   "emoji": "😴",
   "createdAt": 1741553075123
-}               
-                </pre>
+}</pre>
               </info>
             </details>
             <details>
@@ -146,6 +152,8 @@
               <code>limit</code> (optional number): Number of statuses to
               return. Defaults to <code>10</code>.
             </p>
+            <h4>Rate Limit</h4>
+            <p>15 requests over 2 minutes</p>
             <h4>Returns</h4>
             <details>
               <summary><code>200 OK</code></summary>
@@ -166,8 +174,8 @@
       "createdAt": 1741549075123
     }
   ]
-}
-                </pre>
+}</pre
+                >
               </info>
             </details>
             <details>
@@ -189,14 +197,19 @@
           <info>
             <p>Creates a new status entry.</p>
             <h4>Headers</h4>
-            <p><code>Authorization</code>: required passkey token.</p>
+            <p>
+              <code>Authorization</code>: required passkey token. (Defined in
+              server config)
+            </p>
             <h4>Body</h4>
             <pre>
 {
   "text": "string (1-100 chars)",
   "emoji": "emoji (optional, nullable)"
-}
-            </pre>
+}</pre
+            >
+            <h4>Rate Limit</h4>
+            <p>15 requests over 2 minutes</p>
             <h4>Returns</h4>
             <details>
               <summary><code>200 OK</code></summary>

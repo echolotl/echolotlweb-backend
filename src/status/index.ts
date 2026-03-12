@@ -3,13 +3,18 @@ import cors from "@elysiajs/cors";
 import { z } from "zod";
 import { getStatus, setStatus, getStatuses } from "./service";
 import { passkeyAuth } from "../auth";
-
-
+import { rateLimit } from "elysia-rate-limit";
 
 export const statusRouter = new Elysia({ prefix: "/status" })
   .use(cors({
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
+  }))
+  .use(rateLimit({
+    duration: 120 * 1000, 
+    max: 15, 
+    errorResponse: "Rate limit exceeded",
+    scoping: "scoped"
   }))
   .get("/", () => {
     const status = getStatus();

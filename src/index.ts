@@ -27,7 +27,7 @@ const app = new Elysia().use(cors({ origin: ALLOWED_ORIGINS}))
   .onAfterResponse(({ set }) => {
     if (set.status !== undefined) {
       Logger.dim(
-        `└ ${set.status} ${InvertedStatusMap[set.status as keyof typeof InvertedStatusMap] || ""}`,
+        `└ ${set.status} ${InvertedStatusMap[set.status as keyof typeof InvertedStatusMap] || ""} \n`,
       );
     }
   })
