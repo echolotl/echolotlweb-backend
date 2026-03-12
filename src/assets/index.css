@@ -237,8 +237,8 @@ details[open] > info {
     margin: 0.5rem 0;
     border-left: 1px solid var(--surface);
 }
-summary > div:hover > code.post, summary > div:hover > code.get {
-    filter: brightness(1.2);
+summary > div:hover {
+    filter: brightness(1.25);
 }
 .route[open] .description { display: none; }
 .route info p:first-child{

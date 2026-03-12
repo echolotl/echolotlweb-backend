@@ -72,7 +72,7 @@
             <p>15 requests over 1 minute</p>
             <h4>Returns</h4>
             <details>
-              <summary><code>200 OK</code></summary>
+              <summary><b>200 OK</b></summary>
               <info
                 ><p>
                   Provides a stripped down version of
@@ -90,7 +90,7 @@
               </info>
             </details>
             <details>
-              <summary><code>204 No Content</code></summary>
+              <summary><b>204 No Content</b></summary>
               <info
                 >Returns if echolotl is not currently playing anything on
                 Spotify.</info
@@ -114,7 +114,7 @@
             <p>15 requests over 2 minutes</p>
             <h4>Returns</h4>
             <details>
-              <summary><code>200 OK</code></summary>
+              <summary><b>200 OK</b></summary>
               <info>
                 <p>Returns the latest status object.</p>
                 <h5>Example</h5>
@@ -127,7 +127,7 @@
               </info>
             </details>
             <details>
-              <summary><code>204 No Content</code></summary>
+              <summary><b>204 No Content</b></summary>
               <info
                 >Returns when no status has been set yet. (Which probably means
                 that the database got deleted. Whoops!)</info
@@ -156,7 +156,7 @@
             <p>15 requests over 2 minutes</p>
             <h4>Returns</h4>
             <details>
-              <summary><code>200 OK</code></summary>
+              <summary><b>200 OK</b></summary>
               <info>
                 <p>Returns a list of statuses and the count returned.</p>
                 <pre>
@@ -179,7 +179,7 @@
               </info>
             </details>
             <details>
-              <summary><code>204 No Content</code></summary>
+              <summary><b>204 No Content</b></summary>
               <info>Returns when no statuses are available.</info>
             </details>
           </info>
@@ -212,17 +212,17 @@
             <p>15 requests over 2 minutes</p>
             <h4>Returns</h4>
             <details>
-              <summary><code>200 OK</code></summary>
+              <summary><b>200 OK</b></summary>
               <info
                 >Returns a confirmation text string with the new status.</info
               >
             </details>
             <details>
-              <summary><code>401 Unauthorized</code></summary>
-              <info>Missing <code>Authorization</code> header.</info>
+              <summary><b>401 Unauthorized</b></summary>
+              <info>Missing <b>Authorization</b> header.</info>
             </details>
             <details>
-              <summary><code>403 Forbidden</code></summary>
+              <summary><b>403 Forbidden</b></summary>
               <info>Provided passkey is invalid.</info>
             </details>
           </info>
