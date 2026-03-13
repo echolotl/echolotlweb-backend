@@ -103,7 +103,11 @@ export function getStatusesLimit(limit: number): Status[] {
 	}));
 }
 
-export function insertStatus(status: Omit<Status, "createdAt">): void {
+export function insertStatus(status: Omit<Status, "createdAt">): Status {
 	const createdAt = Date.now();
 	insertStatusStmt.run(status.text, status.emoji, createdAt);
+	return {
+		...status,
+		createdAt,
+	};
 }
