@@ -3,8 +3,8 @@ export const SPOTIFY_CURRENT_PLAYBACK_URL =
   "https://api.spotify.com/v1/me/player/currently-playing";
 
 export interface SpotifyTokenRecord {
-	accessToken: string;
-	expiresAt: number;
+  accessToken: string;
+  expiresAt: number;
 }
 
 export type SpotifySimpleArtist = {
@@ -175,4 +175,18 @@ export type CurrentlyPlayingResponse = {
   };
 };
 
-export type EcholotlSpotifyPlayback = Omit<CurrentlyPlayingResponse, "actions" | "device" | "repeat_state" | "shuffle_state" | "context">;
+export type SpotifyResponse = {
+  playing: boolean;
+  title: string;
+  durationMs: number;
+  progressMs: number;
+  artists: {
+    name: string;
+    href: string;
+  }[];
+  album: {
+    name: string;
+    href: string;
+    imageUrl: string | null;
+  };
+};
