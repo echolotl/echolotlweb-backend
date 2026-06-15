@@ -13,35 +13,58 @@ const ALLOWED_ORIGINS = [
 ];
 
 const fileRouter = new Elysia().get("/assets/*", ({ params }) => {
-    const requestedPath = params["*"];
-    const filePath = `./src/assets/${requestedPath}`;
-    return new Response(file(filePath), {
-        headers: { "Content-Type": file(filePath).type },
-    });
+  const requestedPath = params["*"];
+  const filePath = `./src/assets/${requestedPath}`;
+  return new Response(file(filePath), {
+    headers: { "Content-Type": file(filePath).type },
+  });
 });
 
-const app = new Elysia().use(cors({ origin: ALLOWED_ORIGINS}))
+const app = new Elysia()
+  .use(cors({ origin: ALLOWED_ORIGINS }))
   .onRequest(({ request }) => {
-    Logger.dim(`${request.method} ${request.url}`);
+    Logger.hex(
+      "#f53eb8",
+      Logger.fmtPackage(
+        "REQ",
+        "/" + request.url.split("/").slice(3).join("/"),
+        "#f53eb8",
+      ),
+    );
   })
-  .onAfterResponse(({ set }) => {
-    if (set.status !== undefined) {
-      Logger.dim(
-        `└ ${set.status} ${InvertedStatusMap[set.status as keyof typeof InvertedStatusMap] || ""} \n`,
-      );
+  .onAfterResponse(({ responseValue }) => {
+    if (responseValue instanceof Response) {
+      if (responseValue.status >= 500) {
+        Logger.error(
+          `${Logger.fmtPackage(`${responseValue.status} ` + InvertedStatusMap[responseValue.status as keyof typeof InvertedStatusMap])} `,
+        );
+      } else if (responseValue.status >= 400) {
+        Logger.warning(
+          `${Logger.fmtPackage(`${responseValue.status} ` + InvertedStatusMap[responseValue.status as keyof typeof InvertedStatusMap])} `,
+        );
+      } else {
+        Logger.success(
+          `${Logger.fmtPackage(`${responseValue.status} ` + InvertedStatusMap[responseValue.status as keyof typeof InvertedStatusMap])} `,
+        );
+      }
     }
+    Logger.nl();
   })
   .use(spotifyRouter)
   .use(statusRouter)
   .use(fileRouter)
-  .get("/", () => new Response(file("./src/assets/index.html"), {
-    headers: {
-      "Content-Type": "text/html",
-    },
-  }))
+  .get(
+    "/",
+    () =>
+      new Response(file("./src/assets/index.html"), {
+        headers: {
+          "Content-Type": "text/html",
+        },
+      }),
+  )
   .listen(3000);
 
 Logger.statement(
-  `Server started on ${app.server?.hostname}:${app.server?.port}`,
-  "🟢 ",
+  Logger.fmtPackage("SERVER") +
+    `Server started on ${app.server?.hostname}:${app.server?.port}`,
 );
