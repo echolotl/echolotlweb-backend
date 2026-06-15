@@ -178,6 +178,7 @@ export type CurrentlyPlayingResponse = {
 export type SpotifyResponse = {
   playing: boolean;
   title: string;
+  href: string;
   durationMs: number;
   progressMs: number;
   artists: {

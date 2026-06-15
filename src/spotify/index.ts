@@ -27,6 +27,7 @@ export const spotifyRouter = new Elysia({ prefix: "/spotify" })
     const echolotlPlayback = {
       playing: playback.is_playing,
       title: playback.item?.name || "",
+      href: playback.item?.external_urls.spotify || "",
       durationMs: playback.item?.duration_ms || 0,
       progressMs: playback.progress_ms,
       artists:
