@@ -28,11 +28,13 @@ export const commentsRouter = new Elysia({ prefix: "/comments" })
   .use(rateLimit({ duration: 60_000, max: 100, scoping: "scoped" }))
   .get(
     "/user/:userId",
-    ({ params, query, set }) => {
+    ({ params, query }) => {
       const user = getUserByUserId(params.userId);
       if (!user) {
-        set.status = 404;
-        return "User not found";
+        return new Response("User not found", {
+          status: 404,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       const pageSize = limit(query.limit);
@@ -83,11 +85,13 @@ export const commentsRouter = new Elysia({ prefix: "/comments" })
   )
   .post(
     "/s/:slug",
-    async ({ params, cookie: { session }, set, body }) => {
+    async ({ params, cookie: { session }, body }) => {
       const user = userBySession(session.value as string | undefined);
       if (!user) {
-        set.status = 401;
-        return "User not authenticated";
+        return new Response("User not authenticated", {
+          status: 401,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       const comment = insertComment(user.userId, params.slug, null, body);
@@ -102,17 +106,21 @@ export const commentsRouter = new Elysia({ prefix: "/comments" })
       body: commentBodySchema,
     },
   )
-  .get("/:id", ({ params, set }) => {
+  .get("/:id", ({ params }) => {
     const id = Number(params.id);
     if (!Number.isInteger(id)) {
-      set.status = 400;
-      return "Invalid comment id";
+      return new Response("Invalid comment id", {
+        status: 400,
+        headers: { "Content-Type": "text/plain" },
+      });
     }
 
     const comment = getCommentById(id);
     if (!comment) {
-      set.status = 404;
-      return "Comment not found";
+      return new Response("Comment not found", {
+        status: 404,
+        headers: { "Content-Type": "text/plain" },
+      });
     }
 
     const [node] = toCommentNodes([comment]);
@@ -124,17 +132,21 @@ export const commentsRouter = new Elysia({ prefix: "/comments" })
   })
   .get(
     "/:id/replies",
-    ({ params, query, set }) => {
+    ({ params, query }) => {
       const id = Number(params.id);
       if (!Number.isInteger(id)) {
-        set.status = 400;
-        return "Invalid comment id";
+        return new Response("Invalid comment id", {
+          status: 400,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       const comment = getCommentById(id);
       if (!comment) {
-        set.status = 404;
-        return "Comment not found";
+        return new Response("Comment not found", {
+          status: 404,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       const pageSize = limit(query.limit);
@@ -160,23 +172,29 @@ export const commentsRouter = new Elysia({ prefix: "/comments" })
   )
   .post(
     "/:id",
-    async ({ params, cookie: { session }, set, body }) => {
+    async ({ params, cookie: { session }, body }) => {
       const user = userBySession(session.value as string | undefined);
       if (!user) {
-        set.status = 401;
-        return "User not authenticated";
+        return new Response("User not authenticated", {
+          status: 401,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       const id = Number(params.id);
       if (!Number.isInteger(id)) {
-        set.status = 400;
-        return "Invalid comment id";
+        return new Response("Invalid comment id", {
+          status: 400,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       const parent = getCommentById(id);
       if (!parent) {
-        set.status = 404;
-        return "Parent comment not found";
+        return new Response("Parent comment not found", {
+          status: 404,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       const comment = insertComment(user.userId, parent.slug, id, body);
@@ -193,39 +211,51 @@ export const commentsRouter = new Elysia({ prefix: "/comments" })
   )
   .patch(
     "/:id",
-    async ({ params, cookie: { session }, set, body }) => {
+    async ({ params, cookie: { session }, body }) => {
       const user = userBySession(session.value as string | undefined);
       if (!user) {
-        set.status = 401;
-        return "User not authenticated";
+        return new Response("User not authenticated", {
+          status: 401,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       const id = Number(params.id);
       if (!Number.isInteger(id)) {
-        set.status = 400;
-        return "Invalid comment id";
+        return new Response("Invalid comment id", {
+          status: 400,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       const comment = getCommentById(id);
       if (!comment) {
-        set.status = 404;
-        return "Comment not found";
+        return new Response("Comment not found", {
+          status: 404,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       if (comment.userId !== user.userId) {
-        set.status = 403;
-        return "You can only edit your own comments";
+        return new Response("You can only edit your own comments", {
+          status: 403,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       if (comment.deletedAt) {
-        set.status = 410;
-        return "Comment has been deleted";
+        return new Response("Comment has been deleted", {
+          status: 410,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       const updatedComment = editComment(id, body);
       if (!updatedComment) {
-        set.status = 404;
-        return "Comment not found";
+        return new Response("Comment not found", {
+          status: 404,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       await notifyCommentEdited(comment, updatedComment, user);
@@ -241,36 +271,42 @@ export const commentsRouter = new Elysia({ prefix: "/comments" })
       body: commentBodySchema,
     },
   )
-  .delete("/:id", ({ params, cookie: { session }, set }) => {
+  .delete("/:id", ({ params, cookie: { session } }) => {
     const user = userBySession(session.value as string | undefined);
     if (!user) {
-      set.status = 401;
-      return "User not authenticated";
+      return new Response("User not authenticated", {
+        status: 401,
+        headers: { "Content-Type": "text/plain" },
+      });
     }
 
     const id = Number(params.id);
     if (!Number.isInteger(id)) {
-      set.status = 400;
-      return "Invalid comment id";
+      return new Response("Invalid comment id", {
+        status: 400,
+        headers: { "Content-Type": "text/plain" },
+      });
     }
 
     const comment = getCommentById(id);
     if (!comment) {
-      set.status = 404;
-      return "Comment not found";
+      return new Response("Comment not found", {
+        status: 404,
+        headers: { "Content-Type": "text/plain" },
+      });
     }
 
     if (comment.userId !== user.userId) {
-      set.status = 403;
-      return "You can only delete your own comments";
+      return new Response("You can only delete your own comments", {
+        status: 403,
+        headers: { "Content-Type": "text/plain" },
+      });
     }
 
     if (comment.deletedAt) {
-      set.status = 204;
-      return null;
+      return new Response(null, { status: 204 });
     }
 
     deleteComment(id);
-    set.status = 204;
-    return null;
+    return new Response(null, { status: 204 });
   });

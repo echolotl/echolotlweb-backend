@@ -72,15 +72,19 @@ export const statusRouter = new Elysia({ prefix: "/status" })
       if (!STATUS_PASSKEY) {
         return new Response("Server passkey not set", {
           status: 500,
+          headers: { "Content-Type": "text/plain" },
         });
       } else if (!providedKey || providedKey !== STATUS_PASSKEY) {
-        return new Response("Unauthorized", { status: 401 });
+        return new Response("Unauthorized", {
+          status: 401,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       setStatus({ text: body.text, emoji: body.emoji ?? null });
       return new Response(
         `Status updated to: "${body.emoji || body.emoji === "" ? body.emoji + " " : ""}${body.text}"`,
-        { status: 200 },
+        { status: 200, headers: { "Content-Type": "text/plain" } },
       );
     },
     {

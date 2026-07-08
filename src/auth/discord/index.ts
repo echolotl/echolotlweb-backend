@@ -53,7 +53,12 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
     } catch (error) {
       set.status = 500;
       Logger.error(`Discord OAuth config error: ${error}`);
-      return { error: "Discord OAuth is not configured on the server." };
+      return new Response(
+        JSON.stringify({
+          error: "Discord OAuth is not configured on the server.",
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
     }
 
     const state = crypto.randomUUID();
@@ -85,20 +90,34 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
       } catch (error) {
         set.status = 500;
         Logger.error(`Discord OAuth config error: ${error}`);
-        return { error: "Discord OAuth is not configured on the server." };
+        return new Response(
+          JSON.stringify({
+            error: "Discord OAuth is not configured on the server.",
+          }),
+          { status: 500, headers: { "Content-Type": "application/json" } },
+        );
       }
 
       const { code, state } = query;
 
       if (!state || state != oauth_state.value) {
         set.status = 400;
-        return { error: "Invalid state provided." };
+        return new Response(
+          JSON.stringify({ error: "Invalid state provided." }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
       oauth_state.remove();
 
       if (!code) {
         set.status = 400;
-        return { error: "Missing authorization code." };
+        return new Response(
+          JSON.stringify({ error: "Missing authorization code." }),
+          { status: 400, headers: { "Content-Type": "application/json" } },
+        );
       }
 
       const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
@@ -114,7 +133,10 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
       });
       if (!tokenRes.ok) {
         set.status = 502;
-        return { error: "Failed to exchange code with Discord" };
+        return new Response(
+          JSON.stringify({ error: "Failed to exchange code with Discord" }),
+          { status: 502, headers: { "Content-Type": "application/json" } },
+        );
       }
 
       const tokenData: DiscordTokenResponse = await tokenRes.json();
@@ -127,7 +149,10 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
       });
       if (!userRes.ok) {
         set.status = 502;
-        return { error: "Failed to fetch user info from Discord" };
+        return new Response(
+          JSON.stringify({ error: "Failed to fetch user info from Discord" }),
+          { status: 502, headers: { "Content-Type": "application/json" } },
+        );
       }
 
       const user: DiscordUserResponse = await userRes.json();
@@ -137,10 +162,13 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
       const accountAgeMs = Date.now() - accountCreatedAt;
       if (accountAgeMs < MIN_DISCORD_ACCOUNT_AGE_MS) {
         set.status = 403;
-        return {
-          error:
-            "Your Discord account does not meet the minimum age requirement to sign in.",
-        };
+        return new Response(
+          JSON.stringify({
+            error:
+              "Your Discord account does not meet the minimum age requirement to sign in.",
+          }),
+          { status: 403, headers: { "Content-Type": "application/json" } },
+        );
       }
 
       const existingUser = getUserById(user.id);
@@ -176,7 +204,10 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
       await destroySession(session.value as string);
       session.remove();
     }
-    return "Logged out successfully";
+    return new Response("Logged out successfully", {
+      status: 200,
+      headers: { "Content-Type": "text/plain" },
+    });
   })
   .get("/me", async ({ cookie: { session } }) => {
     const user = userBySession(session.value as string | undefined);
@@ -196,26 +227,37 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
       return new Response(null, { status: 204 });
     }
 
-    return {
-      user: toAuthenticatedUser(freshUser),
-    };
+    return new Response(
+      JSON.stringify({ user: toAuthenticatedUser(freshUser) }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   })
   .patch(
     "/me",
-    async ({ cookie: { session }, body, set }) => {
+    async ({ cookie: { session }, body }) => {
       const user = userBySession(session.value as string | undefined);
       if (!user) {
-        set.status = 401;
-        return "Unauthorized";
+        return new Response("Unauthorized", {
+          status: 401,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
       const updatedUser = setUserAnonymous(user.id, body.anonymous);
       if (!updatedUser) {
-        set.status = 404;
-        return "User not found";
+        return new Response("User not found", {
+          status: 404,
+          headers: { "Content-Type": "text/plain" },
+        });
       }
 
-      return { user: toAuthenticatedUser(updatedUser) };
+      return new Response(
+        JSON.stringify({ user: toAuthenticatedUser(updatedUser) }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
     },
     {
       body: t.Object({
@@ -223,25 +265,35 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
       }),
     },
   )
-  .delete("/me", async ({ cookie: { session }, set }) => {
+  .delete("/me", async ({ cookie: { session } }) => {
     const user = userBySession(session.value as string | undefined);
     if (!user) {
-      set.status = 401;
-      return "Unauthorized";
+      return new Response("Unauthorized", {
+        status: 401,
+        headers: { "Content-Type": "text/plain" },
+      });
     }
     const sessions = sessionsByUserId(user.userId);
     for (const s of sessions) {
       await destroySession(s.token);
     }
     deleteUser(user.id);
-    return `User ${user.username} (${user.userId}) deleted successfully`;
+    return new Response(
+      `User ${user.username} (${user.userId}) deleted successfully`,
+      { status: 200, headers: { "Content-Type": "text/plain" } },
+    );
   })
-  .get("/user/:userId", ({ params, set }) => {
+  .get("/user/:userId", ({ params }) => {
     const user = getUserByUserId(params.userId);
     if (!user) {
-      set.status = 404;
-      return "User not found";
+      return new Response("User not found", {
+        status: 404,
+        headers: { "Content-Type": "text/plain" },
+      });
     }
 
-    return { user: toPublicUser(user) };
+    return new Response(JSON.stringify({ user: toPublicUser(user) }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   });
