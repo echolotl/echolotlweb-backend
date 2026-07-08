@@ -2,20 +2,26 @@ import { Elysia, t } from "elysia";
 import cors from "@elysiajs/cors";
 import { z } from "zod";
 import { getStatus, setStatus, getStatuses } from "./service";
-import { passkeyAuth } from "../auth";
 import { rateLimit } from "elysia-rate-limit";
+import { ALLOWED_ORIGINS, STATUS_PASSKEY } from "../constants";
 
 export const statusRouter = new Elysia({ prefix: "/status" })
-  .use(cors({
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }))
-  .use(rateLimit({
-    duration: 120 * 1000, 
-    max: 15, 
-    errorResponse: "Rate limit exceeded",
-    scoping: "scoped"
-  }))
+  .use(
+    cors({
+      origin: ALLOWED_ORIGINS,
+      credentials: true,
+      methods: ["GET", "POST"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    }),
+  )
+  .use(
+    rateLimit({
+      duration: 120 * 1000,
+      max: 15,
+      errorResponse: "Rate limit exceeded",
+      scoping: "scoped",
+    }),
+  )
   .get("/", () => {
     const status = getStatus();
 
@@ -54,16 +60,21 @@ export const statusRouter = new Elysia({ prefix: "/status" })
   )
   .post(
     "/",
-    (ctx) => {
-      if (!ctx.request.headers.has("Authorization")) {
+    ({ headers, body }) => {
+      const authHeader = headers.authorization;
+      const providedKey = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1];
+
+      if (!STATUS_PASSKEY) {
+        return new Response("Server passkey not set", {
+          status: 500,
+        });
+      } else if (!providedKey || providedKey !== STATUS_PASSKEY) {
         return new Response("Unauthorized", { status: 401 });
-      } else if (!passkeyAuth(ctx.request.headers.get("Authorization"))) {
-        return new Response("Forbidden", { status: 403 });
       }
 
-      setStatus({ text: ctx.body.text, emoji: ctx.body.emoji ?? null });
+      setStatus({ text: body.text, emoji: body.emoji ?? null });
       return new Response(
-        `Status updated to: "${ctx.body.emoji || ctx.body.emoji === "" ? ctx.body.emoji + " " : ""}${ctx.body.text}"`,
+        `Status updated to: "${body.emoji || body.emoji === "" ? body.emoji + " " : ""}${body.text}"`,
         { status: 200 },
       );
     },

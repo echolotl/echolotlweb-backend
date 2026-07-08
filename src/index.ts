@@ -2,15 +2,10 @@ import { Elysia, InvertedStatusMap } from "elysia";
 import { Logger } from "./util/logger";
 import { spotifyRouter } from "./spotify";
 import { statusRouter } from "./status";
+import { authRouter } from "./auth";
 import { file } from "bun";
 import cors from "@elysiajs/cors";
-
-const ALLOWED_ORIGINS = [
-  "https://echolotl.lol",
-  "https://www.echolotl.lol",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-];
+import { ALLOWED_ORIGINS } from "./constants";
 
 const fileRouter = new Elysia().get("/assets/*", ({ params }) => {
   const requestedPath = params["*"];
@@ -52,6 +47,7 @@ const app = new Elysia()
   })
   .use(spotifyRouter)
   .use(statusRouter)
+  .use(authRouter)
   .use(fileRouter)
   .get(
     "/",

@@ -76,6 +76,65 @@
     }
   ]
 }`, "statusHistoryExample", "json");
+
+      highlight(`{
+  "user": {
+    "id": "123456789012345678",
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "username": "echolotl",
+    "displayName": "echolotl",
+    "avatarHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+    "anonymous": false,
+    "createdAt": 1741553075123,
+    "updatedAt": 1741553075123
+  }
+}`, "meExample", "json");
+      highlight(`{
+  "user": {
+    "id": "123456789012345678",
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "username": "echolotl",
+    "displayName": "echolotl",
+    "avatarHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+    "anonymous": true,
+    "createdAt": 1741553075123,
+    "updatedAt": 1741553075123
+  }
+}`, "anonymousMeExample", "json");
+      highlight(`{
+  "anonymous": true
+}`, "patchAnonymousBody", "json");
+      highlight(`{
+  "user": {
+    "id": "123456789012345678",
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "username": "echolotl",
+    "displayName": "echolotl",
+    "avatarHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+    "anonymous": true,
+    "createdAt": 1741553075123,
+    "updatedAt": 1741553075123
+  }
+}`, "patchAnonymousExample", "json");
+      highlight(`{
+  "success": true
+}`, "logoutExample", "json");
+      highlight(`{
+  "user": {
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "username": "echolotl",
+    "displayName": "echolotl",
+    "avatarHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"
+  }
+}`, "userByIdExample", "json");
+      highlight(`{
+  "user": {
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "username": "anonymous550e",
+    "displayName": "Anonymous",
+    "avatarHash": null
+  }
+}`, "userByIdAnonymousExample", "json");
     </script>
     <style>
       .material-symbols-outlined {
@@ -97,7 +156,7 @@
             target="_blank"
             >echolotl.lol</a
           >
-          backend API thing
+          backend API thing docs
         </h1>
 
         <p>
@@ -109,7 +168,7 @@
           the source code
           <a href="https://github.com/echolotl/echolotlweb-backend">here</a>.
         </p>
-        <small>Last updated <b>3/10/2026</b>.</small>
+        <small>Last updated <b>7/7/2026</b>.</small>
       </div>
       <aside style="display: flex; align-items: flex-end">
         <img
@@ -120,7 +179,7 @@
       </aside>
     </div>
     <hr />
-    <h2>Documentation</h2>
+    <h2>Status</h2>
     <ul>
       <li>
         <details class="route">
@@ -257,8 +316,10 @@
             <p>Creates a new status entry.</p>
             <h4>Headers</h4>
             <p>
-              <code>Authorization</code>: required passkey token. (Defined in
-              server config)
+              Requires an
+              <code>Authorization: Bearer &lt;PASSKEY&gt;</code> header, where
+              <code>PASSKEY</code> matches the server's configured
+              <code>PASSKEY</code> environment variable.
             </p>
             <h4>Body</h4>
             <pre>
@@ -278,11 +339,280 @@
             </details>
             <details>
               <summary><b>401 Unauthorized</b></summary>
-              <info>Missing <b>Authorization</b> header.</info>
+              <info
+                >Missing or invalid <code>Authorization</code> bearer
+                token.</info
+              >
+            </details>
+          </info>
+        </details>
+      </li>
+    </ul>
+    <h2 id="discord-auth">Discord OAuth</h2>
+    <p>
+      Lets you login with Discord for echolotl.lol. This is what will power any authenticated requests.
+    </p>
+    <ul>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code><a href="/auth/discord/">/auth/discord/</a></code>
+              <div class="description">Starts the Discord login flow.</div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Redirects the browser to Discord's OAuth consent screen. Sets
+              a short-lived <code>oauth_state</code> cookie for validation.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>20 requests over 1 minute, shared across all Discord auth routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>302 Found</b></summary>
+              <info
+                >Redirects to Discord's OAuth authorize page.</info
+              >
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code>/auth/discord/authenticate</code>
+              <div class="description">
+                OAuth callback used by Discord.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              This is the <code>redirect_uri</code> configured on the
+              Discord application and it's not meant to be called
+              directly. Discord redirects here with a <code>code</code> and
+              <code>state</code> after the user approves the login.
+            </p>
+            <p>
+              This does more additional checks to ensure the Discord account is at least a month old (to mitigate spam),
+              and then saves the Discord user info to the database and sets a <code>session</code> cookie for future authenticated requests.
+            </p>
+            <h4>Query Parameters</h4>
+            <p>
+              <code>code</code> (string): Authorization code provided by
+              Discord.<br />
+              <code>state</code> (string): Must match the
+              <code>oauth_state</code> cookie set in <code>/auth/discord/</code>.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>20 requests over 1 minute, shared across all Discord auth routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>302 Found</b></summary>
+              <info
+                >Login succeeded. Redirects to the frontend with a
+                <code>session</code> cookie set.</info
+              >
+            </details>
+            <details>
+              <summary><b>400 Bad Request</b></summary>
+              <info
+                >Missing or invalid query parameters.</info
+              >
             </details>
             <details>
               <summary><b>403 Forbidden</b></summary>
-              <info>Provided passkey is invalid.</info>
+              <info
+                >The Discord account doesn't meet the minimum account age
+                requirement.</info
+              >
+            </details>
+            <details>
+              <summary><b>502 Bad Gateway</b></summary>
+              <info
+                >Failed to reach Discord's token exchange or user info
+                endpoints.</info
+              >
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code><a href="/auth/discord/logout">/auth/discord/logout</a></code>
+              <div class="description">Logs out the current session.</div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Destroys the session tied to the <code>session</code> cookie
+              (if any) and clears the cookie.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>20 requests over 1 minute, shared across all Discord auth routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>200 OK</b></summary>
+              <info>
+                <p>Returns a confirmation text string.</p>
+              </info>
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code><a href="/auth/discord/me">/auth/discord/me</a></code>
+              <div class="description">Gets the currently logged in user.</div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Reads the <code>session</code> cookie and returns the
+              associated user as a full user object. This always returns the full user object, even if the user has enabled anonymous mode.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>20 requests over 1 minute, shared across all Discord auth routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>200 OK</b></summary>
+              <info>
+                <p>Anonymous mode disabled:</p>
+                <div id="meExample" class="scriptShiki"></div>
+                <p>Anonymous mode enabled:</p>
+                <div id="anonymousMeExample" class="scriptShiki"></div>
+              </info>
+            </details>
+            <details>
+              <summary><b>204 No Content</b></summary>
+              <info>Returns if not logged in.</info>
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="patch">PATCH</code>
+              <code>/auth/discord/me</code>
+              <span class="material-symbols-outlined auth discord">lock</span>
+              <div class="description">
+                Toggles anonymous mode for the current user.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Requires an active <code>session</code> cookie. Can be used to set the anonymous mode for the current user,
+              and returns a full user object with the updates. This is a non-anonymous object for the same reason as the <code>GET /auth/discord/me</code> endpoint.
+            </p>
+            <h4>Body</h4>
+            <div id="patchAnonymousBody" class="scriptShiki"></div>
+            <h4>Rate Limit</h4>
+            <p>20 requests over 1 minute, shared across all Discord auth routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>200 OK</b></summary>
+              <info>
+                <p>Returns the updated user.</p>
+                <div id="patchAnonymousExample" class="scriptShiki"></div>
+              </info>
+            </details>
+            <details>
+              <summary><b>401 Unauthorized</b></summary>
+              <info>Returns if not logged in.</info>
+            </details>
+            <details>
+              <summary><b>404 Not Found</b></summary>
+              <info>Returns if the user no longer exists.</info>
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+          <details class="route">
+              <summary>
+                <div>
+                  <code class="delete">DELETE</code>
+                  <code>/auth/discord/me</code>
+                  <span class="material-symbols-outlined auth discord">lock</span>
+                  <div class="description">
+                      Deletes the current user and their data.
+                  </div>
+                </div>
+              </summary>
+              <info>
+                  <p>
+                      Requires an active <code>session</code> cookie. This will delete the current user and all their data from the database, including their status history.
+                  </p>
+                  <h4>Rate Limit</h4>
+                  <p>20 requests over 1 minute, shared across all Discord auth routes</p>
+                  <h4>Returns</h4>
+                  <details>
+                      <summary><b>200 OK</b></summary>
+                      <info>
+                          <p>Returns a confirmation text string.</p>
+                      </info>
+                  </details>
+                  <details>
+                      <summary><b>401 Unauthorized</b></summary>
+                      <info>Returns if not logged in.</info>
+                  </details>
+                  <details>
+                      <summary><b>404 Not Found</b></summary>
+                      <info>Returns if the user doesn't exist.</info>
+                  </details>
+              </info>
+          </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code>/auth/discord/user/:userId</code>
+              <div class="description">
+                Looks up a user by their standalone user ID.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Returns a user object for the given <code>userId</code>.
+              If the user has enabled anonymous mode, this will return a redacted user object with a generic username and display name, and no avatar hash.
+            </p>
+            <h4>Path Parameters</h4>
+            <p>
+              <code>userId</code> (string): The user's standalone
+              <code>userId</code>, as returned by
+              <code>/auth/discord/me</code> or itself.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>20 requests over 1 minute, shared across all Discord auth routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>200 OK</b></summary>
+              <info>
+                <p>Anonymous mode disabled:</p>
+                <div id="userByIdExample" class="scriptShiki"></div>
+                <p>Anonymous mode enabled:</p>
+                <div id="userByIdAnonymousExample" class="scriptShiki"></div>
+              </info>
+            </details>
+            <details>
+              <summary><b>404 Not Found</b></summary>
+              <info>Returns if no user has that <code>userId</code>.</info>
             </details>
           </info>
         </details>
