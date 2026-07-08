@@ -40,7 +40,7 @@ export function gradientText(
   return result + "\x1b[0m";
 }
 
-let LOG_PREFIX = "▎ ";
+let LOG_PREFIX = "▎";
 
 // Stylized logger
 export class Logger {
