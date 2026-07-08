@@ -6,6 +6,7 @@ import { authRouter } from "./auth";
 import { file } from "bun";
 import cors from "@elysiajs/cors";
 import { ALLOWED_ORIGINS } from "./constants";
+import { commentsRouter } from "./comments";
 
 const fileRouter = new Elysia().get("/assets/*", ({ params }) => {
   const requestedPath = params["*"];
@@ -49,6 +50,7 @@ const app = new Elysia()
   .use(statusRouter)
   .use(authRouter)
   .use(fileRouter)
+  .use(commentsRouter)
   .get(
     "/",
     () =>

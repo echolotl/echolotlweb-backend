@@ -15,11 +15,6 @@ export interface User {
   updatedAt: number;
 }
 
-/**
- * The subset of a user's fields that are safe to expose publicly.
- * The only thing identifying Discord thing is the username,
- * but if the user has enabled anonymous mode, that is replaced with a generic one.
- */
 export interface PublicUser {
   userId: string;
   username: string;
@@ -27,34 +22,10 @@ export interface PublicUser {
   avatarHash: string | null;
 }
 
-export function toPublicUser(user: User): PublicUser {
-  if (user.anonymous) {
-    return {
-      userId: user.userId,
-      username: `anonymous${user.userId.slice(0, 4)}`,
-      displayName: "Anonymous",
-      avatarHash: null,
-    };
-  }
-
-  return {
-    userId: user.userId,
-    username: user.username,
-    displayName: user.displayName,
-    avatarHash: user.avatarHash,
-  };
-}
-
 export type AuthenticatedUser = Omit<
   User,
   "refreshToken" | "accessToken" | "tokenExpires"
 >;
-
-export function toAuthenticatedUser(user: User): AuthenticatedUser {
-  const { refreshToken, accessToken, tokenExpires, ...authenticatedUser } =
-    user;
-  return authenticatedUser;
-}
 
 export interface Session {
   token: string;

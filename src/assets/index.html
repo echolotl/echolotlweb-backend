@@ -15,12 +15,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght,MONO@0,300..800,1;1,300..800,1&display=swap" rel="stylesheet">
     <script type="module" async>
       import { codeToHtml } from 'https://esm.sh/shiki@3.0.0';
-      function highlight(string, elementId, lang = "typescript") {
-        codeToHtml(string, { lang, theme: "github-dark" }).then((html) => {
+      function highlight(string = "", elementId = "", lang = "typescript") {
+        codeToHtml(string.trim(), { lang, theme: "github-dark" }).then((html) => {
           document.getElementById(elementId).innerHTML = html;
         });
       }
 
+      // GET /spotify
       highlight(`type SpotifyResponse = {
   playing: boolean;
   title: string;
@@ -38,6 +39,7 @@
   };
 };`, "spotifyType");
 
+      // GET /spotify
       highlight(`{
   "playing": true,
   "title": "There's a Trick to It",
@@ -55,21 +57,26 @@
     "imageUrl": "https://i.scdn.co/image/ab67616d0000b2736317dd36bba96d286d1a567f"
   }
 }`, "spotifyExample", "json");
+      // GET /status
       highlight(`{
+  "id": 2,
   "text": "sleepy",
   "emoji": "😴",
   "createdAt": 1741553075123
 }`, "latestStatusExample", "json");
 
+        // GET /status/history
         highlight(`{
   "total": 2,
   "statuses": [
     {
+      "id": 1,
       "text": "coding",
       "emoji": "🧠",
       "createdAt": 1741553075123
     },
     {
+      "id": 2,
       "text": "lunch",
       "emoji": null,
       "createdAt": 1741549075123
@@ -77,64 +84,198 @@
   ]
 }`, "statusHistoryExample", "json");
 
+      // GET /auth/discord/me
       highlight(`{
   "user": {
-    "id": "123456789012345678",
-    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "id": "435563387443740692",
+    "userId": "96fb88e3-7d86-4952-bf33-a39be79bbe47",
     "username": "echolotl",
     "displayName": "echolotl",
-    "avatarHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+    "avatarHash": "b4f0fe2766aa2ff7ea8a41af44fc832c",
     "anonymous": false,
-    "createdAt": 1741553075123,
-    "updatedAt": 1741553075123
+    "createdAt": 1783493609523,
+    "updatedAt": 1783493609523
   }
 }`, "meExample", "json");
+
+      // GET /auth/discord/me
       highlight(`{
   "user": {
-    "id": "123456789012345678",
-    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "id": "435563387443740692",
+    "userId": "96fb88e3-7d86-4952-bf33-a39be79bbe47",
     "username": "echolotl",
     "displayName": "echolotl",
-    "avatarHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+    "avatarHash": "b4f0fe2766aa2ff7ea8a41af44fc832c",
     "anonymous": true,
-    "createdAt": 1741553075123,
-    "updatedAt": 1741553075123
+    "createdAt": 1783493609523,
+    "updatedAt": 1783493609523
   }
 }`, "anonymousMeExample", "json");
+
+      // PATCH /auth/discord/me
       highlight(`{
   "anonymous": true
 }`, "patchAnonymousBody", "json");
+
+      // PATCH /auth/discord/me
       highlight(`{
   "user": {
-    "id": "123456789012345678",
-    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "id": "435563387443740692",
+    "userId": "96fb88e3-7d86-4952-bf33-a39be79bbe47",
     "username": "echolotl",
     "displayName": "echolotl",
-    "avatarHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+    "avatarHash": "b4f0fe2766aa2ff7ea8a41af44fc832c",
     "anonymous": true,
-    "createdAt": 1741553075123,
-    "updatedAt": 1741553075123
+    "createdAt": 1783493609523,
+    "updatedAt": 1783493609523
   }
 }`, "patchAnonymousExample", "json");
-      highlight(`{
-  "success": true
-}`, "logoutExample", "json");
+
+      // GET /auth/discord/user/:userId
       highlight(`{
   "user": {
-    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "userId": "96fb88e3-7d86-4952-bf33-a39be79bbe47",
     "username": "echolotl",
     "displayName": "echolotl",
-    "avatarHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"
+    "avatarHash": "b4f0fe2766aa2ff7ea8a41af44fc832c"
   }
 }`, "userByIdExample", "json");
+
+      // GET /auth/discord/user/:userId
       highlight(`{
   "user": {
-    "userId": "550e8400-e29b-41d4-a716-446655440000",
-    "username": "anonymous550e",
+    "userId": "96fb88e3-7d86-4952-bf33-a39be79bbe47",
+    "username": "anonymous96fb",
     "displayName": "Anonymous",
     "avatarHash": null
   }
 }`, "userByIdAnonymousExample", "json");
+
+      // GET /comments/user/:userId
+      highlight(`{
+  "user": {
+    "userId": "96fb88e3-7d86-4952-bf33-a39be79bbe47",
+    "username": "echolotl",
+    "displayName": "echolotl",
+    "avatarHash": "b4f0fe2766aa2ff7ea8a41af44fc832c"
+  },
+  "comments": [
+    {
+      "id": 2,
+      "slug": "test",
+      "parentId": 1,
+      "body": "hi bro",
+      "createdAt": 1783495535264,
+      "editedAt": null,
+      "deletedAt": null
+    },
+    {
+      "id": 1,
+      "slug": "test",
+      "parentId": null,
+      "body": "edit: thanks for a quarter of a million subscribers",
+      "createdAt": 1783495142725,
+      "editedAt": 1783496618566,
+      "deletedAt": null
+    }
+  ]
+}`, "commentsByUserExample", "json");
+
+      // GET /comments/s/:slug
+      highlight(`{
+  "slug": "test",
+  "comments": [
+    {
+      "id": 1,
+      "slug": "test",
+      "parentId": null,
+      "body": "edit: thanks for a quarter of a million subscribers",
+      "createdAt": 1783495142725,
+      "editedAt": 1783496618566,
+      "deletedAt": null,
+      "author": {
+        "userId": "96fb88e3-7d86-4952-bf33-a39be79bbe47",
+        "username": "echolotl",
+        "displayName": "echolotl",
+        "avatarHash": "b4f0fe2766aa2ff7ea8a41af44fc832c"
+      },
+      "replyCount": 3
+    }
+  ],
+  "nextCursor": null
+}`, "commentTreeExample", "json");
+      // POST /comments/s/:slug
+      highlight(`{
+  "id": 2,
+  "slug": "test",
+  "parentId": null,
+  "body": "wow",
+  "createdAt": 1783495142725,
+  "editedAt": null,
+  "deletedAt": null,
+  "author": {
+    "userId": "96fb88e3-7d86-4952-bf33-a39be79bbe47",
+    "username": "echolotl",
+    "displayName": "echolotl",
+    "avatarHash": "b4f0fe2766aa2ff7ea8a41af44fc832c"
+  }
+}`, "newCommentExample", "json");
+      // GET /comments/:id
+      highlight(`{
+      "id": 1,
+      "slug": "test",
+      "parentId": null,
+      "body": "edit: thanks for a quarter of a million subscribers",
+      "createdAt": 1783495142725,
+      "editedAt": 1783496618566,
+      "deletedAt": null,
+      "author": {
+        "userId": "96fb88e3-7d86-4952-bf33-a39be79bbe47",
+        "username": "echolotl",
+        "displayName": "echolotl",
+        "avatarHash": "b4f0fe2766aa2ff7ea8a41af44fc832c"
+      },
+      "replyCount": 3
+    }`, "singleCommentExample", "json");
+      // GET /comments/:id/replies
+      highlight(`{
+  "parentId": 42,
+  "replies": [
+    {
+      "id": 4,
+      "slug": "test",
+      "parentId": 2,
+      "body": "I hate this",
+      "createdAt": 1783495142725,
+      "editedAt": null,
+      "deletedAt": null,
+      "author": {
+        "userId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+        "username": "anotheruser",
+        "displayName": "Another User",
+        "avatarHash": null
+      },
+      "replyCount": 0
+    }
+  ],
+  "nextCursor": null
+}`, "repliesExample", "json");
+      // PATCH /comments/:id
+      highlight(`{
+  "id": 43,
+  "slug": "my-art-piece",
+  "parentId": 42,
+  "body": "Edited: I actually love this and am not held at gunpoint!",
+  "createdAt": 1783495142725,
+  "editedAt": 1783496618566,
+  "deletedAt": null,
+  "author": {
+    "userId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "username": "anotheruser",
+    "displayName": "Another User",
+    "avatarHash": null
+  }
+}`, "editedCommentExample", "json");
     </script>
     <style>
       .material-symbols-outlined {
@@ -168,7 +309,7 @@
           the source code
           <a href="https://github.com/echolotl/echolotlweb-backend">here</a>.
         </p>
-        <small>Last updated <b>7/7/2026</b>.</small>
+        <small>Last updated <b>7/8/2026</b>.</small>
       </div>
       <aside style="display: flex; align-items: flex-end">
         <img
@@ -268,6 +409,9 @@
             <p>
               <code>limit</code> (optional number): Number of statuses to
               return. Defaults to <code>10</code>.
+            </p>
+            <p>
+              <code>cursor</code> (optional number): The ID of the last status from the previous page, used for pagination.
             </p>
             <h4>Rate Limit</h4>
             <p>15 requests over 2 minutes</p>
@@ -554,7 +698,7 @@
               </summary>
               <info>
                   <p>
-                      Requires an active <code>session</code> cookie. This will delete the current user and all their data from the database, including their status history.
+                      Requires an active <code>session</code> cookie. This will delete the current user and all their data from the database.
                   </p>
                   <h4>Rate Limit</h4>
                   <p>20 requests over 1 minute, shared across all Discord auth routes</p>
@@ -583,7 +727,7 @@
               <code class="get">GET</code>
               <code>/auth/discord/user/:userId</code>
               <div class="description">
-                Looks up a user by their standalone user ID.
+                Looks up a user by their (non-Discord) user ID.
               </div>
             </div>
           </summary>
@@ -594,8 +738,7 @@
             </p>
             <h4>Path Parameters</h4>
             <p>
-              <code>userId</code> (string): The user's standalone
-              <code>userId</code>, as returned by
+              <code>userId</code> (string): The user's <code>userId</code>, as returned by
               <code>/auth/discord/me</code> or itself.
             </p>
             <h4>Rate Limit</h4>
@@ -613,6 +756,424 @@
             <details>
               <summary><b>404 Not Found</b></summary>
               <info>Returns if no user has that <code>userId</code>.</info>
+            </details>
+          </info>
+        </details>
+      </li>
+    </ul>
+    <h2 id="comments">Comments</h2>
+    <p>
+      Lets people leave comments (and replies) on art pieces (or, theoretically, anything in the future), identified by a
+      <code>slug</code>. Posting, editing, and deleting comments requires an
+      active <code>session</code> cookie from
+      <a href="#discord-auth">Discord OAuth</a>. The slugs provided aren't checked for existence in actuality.
+    </p>
+    <ul>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code>/comments/user/:userId</code>
+              <div class="description">
+                Gets a user's recent comments.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Returns the user's public profile along with their most
+              recent comments, newest first. Comments don't include author
+              info here since it's the same user for all of them.
+            </p>
+            <h4>Path Parameters</h4>
+            <p>
+              <code>userId</code> (string): The user's standalone
+              <code>userId</code>.
+            </p>
+            <h4>Query Parameters</h4>
+            <p>
+              <code>limit</code> (optional number): Number of comments to
+              return. Defaults to <code>10</code>.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>100 requests over 1 minute, shared across all comment routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>200 OK</b></summary>
+              <info>
+                <p>Returns the user and their comments.</p>
+                <h5>Example</h5>
+                <div id="commentsByUserExample" class="scriptShiki"></div>
+              </info>
+            </details>
+            <details>
+              <summary><b>404 Not Found</b></summary>
+              <info>Returns if no user has that <code>userId</code>.</info>
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code>/comments/s/:slug</code>
+              <div class="description">
+                Gets top-level comments for a slug.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Returns the top-level (non-reply) comments for the given
+              <code>slug</code>, oldest first. Each comment includes a
+              <code>replyCount</code> so you can fetch
+              replies separately from
+              <code>GET /comments/:id/replies</code>.
+            </p>
+            <h4>Path Parameters</h4>
+            <p>
+              <code>slug</code> (string): The slug of the art piece
+              being commented on.
+            </p>
+            <h4>Query Parameters</h4>
+            <p>
+              <code>limit</code> (optional number): Number of top-level
+              comments to return. Defaults to <code>10</code>, capped at
+              <code>50</code>.
+            </p>
+            <p>
+              <code>cursor</code> (optional number): The <code>id</code> of
+              the last comment from the previous page. Pass the response's
+              <code>nextCursor</code> to fetch the next page.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>100 requests over 1 minute, shared across all comment routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>200 OK</b></summary>
+              <info>
+                <p>
+                  Returns the slug, a page of top-level comments, and a
+                  <code>nextCursor</code> (or <code>null</code> if there are
+                  no more pages).
+                </p>
+                <h5>Example</h5>
+                <div id="commentTreeExample" class="scriptShiki"></div>
+              </info>
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="post">POST</code>
+              <code>/comments/s/:slug</code>
+              <span class="material-symbols-outlined auth discord">lock</span>
+              <div class="description">
+                Posts a new top-level comment.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Requires an active <code>session</code> cookie. Creates a new
+              top-level comment on the given <code>slug</code>.
+            </p>
+            <h4>Path Parameters</h4>
+            <p>
+              <code>slug</code> (string): The identifier for the art piece
+              being commented on.
+            </p>
+            <h4>Body</h4>
+            <p>
+              Plain text body (<code>Content-Type: text/plain</code>),
+              1-5000 characters.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>100 requests over 1 minute, shared across all comment routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>201 Created</b></summary>
+              <info>
+                <p>Returns the newly created comment.</p>
+                <h5>Example</h5>
+                <div id="newCommentExample" class="scriptShiki"></div>
+              </info>
+            </details>
+            <details>
+              <summary><b>401 Unauthorized</b></summary>
+              <info>Returns if not logged in.</info>
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code>/comments/:id</code>
+              <div class="description">
+                Gets a single comment.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Returns a single comment by <code>id</code>, along with its
+              <code>replyCount</code>. Fetch replies separately from
+              <code>GET /comments/:id/replies</code>.
+            </p>
+            <h4>Path Parameters</h4>
+            <p>
+              <code>id</code> (number): The comment's numeric ID.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>100 requests over 1 minute, shared across all comment routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>200 OK</b></summary>
+              <info>
+                <p>Returns the comment.</p>
+                <h5>Example</h5>
+                <div id="singleCommentExample" class="scriptShiki"></div>
+              </info>
+            </details>
+            <details>
+              <summary><b>400 Bad Request</b></summary>
+              <info>Returns if <code>id</code> isn't an integer.</info>
+            </details>
+            <details>
+              <summary><b>404 Not Found</b></summary>
+              <info>Returns if no comment with that <code>id</code> exists.</info>
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="get">GET</code>
+              <code>/comments/:id/replies</code>
+              <div class="description">
+                Gets replies to a comment.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Returns the direct replies to the comment <code>id</code>,
+              oldest first. Each reply includes its own
+              <code>replyCount</code>; fetch nested replies by calling this
+              route again with the reply's own <code>id</code>.
+            </p>
+            <h4>Path Parameters</h4>
+            <p>
+              <code>id</code> (number): The parent comment's ID.
+            </p>
+            <h4>Query Parameters</h4>
+            <p>
+              <code>limit</code> (optional number): Number of replies to
+              return. Defaults to <code>10</code>, capped at <code>50</code>.
+            </p>
+            <p>
+              <code>cursor</code> (optional number): The <code>id</code> of
+              the last reply from the previous page. Pass the response's
+              <code>nextCursor</code> to fetch the next page.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>100 requests over 1 minute, shared across all comment routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>200 OK</b></summary>
+              <info>
+                <p>
+                  Returns the parent comment's <code>id</code>, a page of
+                  replies, and a <code>nextCursor</code> (or
+                  <code>null</code> if there are no more pages).
+                </p>
+                <h5>Example</h5>
+                <div id="repliesExample" class="scriptShiki"></div>
+              </info>
+            </details>
+            <details>
+              <summary><b>400 Bad Request</b></summary>
+              <info>Returns if <code>id</code> isn't a valid integer.</info>
+            </details>
+            <details>
+              <summary><b>404 Not Found</b></summary>
+              <info>Returns if no comment with that <code>id</code> exists.</info>
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="post">POST</code>
+              <code>/comments/:id</code>
+              <span class="material-symbols-outlined auth discord">lock</span>
+              <div class="description">
+                Posts a reply to a comment.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Requires an active <code>session</code> cookie. Creates a
+              reply to the comment <code>id</code>, inheriting its slug.
+            </p>
+            <h4>Path Parameters</h4>
+            <p>
+              <code>id</code> (number): The parent comment's numeric ID.
+            </p>
+            <h4>Body</h4>
+            <p>
+              Plain text body (<code>Content-Type: text/plain</code>),
+              1-5000 characters.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>100 requests over 1 minute, shared across all comment routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>201 Created</b></summary>
+              <info>
+                <p>Returns the newly created reply.</p>
+                <h5>Example</h5>
+                <div id="newCommentExample" class="scriptShiki"></div>
+              </info>
+            </details>
+            <details>
+              <summary><b>400 Bad Request</b></summary>
+              <info>Returns if <code>id</code> isn't an integer.</info>
+            </details>
+            <details>
+              <summary><b>401 Unauthorized</b></summary>
+              <info>Returns if not logged in.</info>
+            </details>
+            <details>
+              <summary><b>404 Not Found</b></summary>
+              <info>Returns if no parent comment with that <code>id</code> exists.</info>
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="patch">PATCH</code>
+              <code>/comments/:id</code>
+              <span class="material-symbols-outlined auth discord">lock</span>
+              <div class="description">
+                Edits one of your own comments.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Requires an active <code>session</code> cookie. You can only
+              edit your own comments, and only if they haven't been
+              deleted.
+            </p>
+            <h4>Path Parameters</h4>
+            <p>
+              <code>id</code> (number): The comment's numeric ID.
+            </p>
+            <h4>Body</h4>
+            <p>
+              Plain text body (<code>Content-Type: text/plain</code>),
+              1-5000 characters.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>100 requests over 1 minute, shared across all comment routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>200 OK</b></summary>
+              <info>
+                <p>Returns the updated comment.</p>
+                <h5>Example</h5>
+                <div id="editedCommentExample" class="scriptShiki"></div>
+              </info>
+            </details>
+            <details>
+              <summary><b>400 Bad Request</b></summary>
+              <info>Returns if <code>id</code> isn't a valid integer.</info>
+            </details>
+            <details>
+              <summary><b>401 Unauthorized</b></summary>
+              <info>Returns if not logged in.</info>
+            </details>
+            <details>
+              <summary><b>403 Forbidden</b></summary>
+              <info>Returns if the comment isn't yours.</info>
+            </details>
+            <details>
+              <summary><b>404 Not Found</b></summary>
+              <info>Returns if no comment with that <code>id</code> exists.</info>
+            </details>
+            <details>
+              <summary><b>410 Gone</b></summary>
+              <info>Returns if the comment has already been deleted.</info>
+            </details>
+          </info>
+        </details>
+      </li>
+      <li>
+        <details class="route">
+          <summary>
+            <div>
+              <code class="delete">DELETE</code>
+              <code>/comments/:id</code>
+              <span class="material-symbols-outlined auth discord">lock</span>
+              <div class="description">
+                Deletes one of your own comments.
+              </div>
+            </div>
+          </summary>
+          <info>
+            <p>
+              Requires an active <code>session</code> cookie. You can only
+              delete your own comments. The comment's body is replaced
+              with <code>[deleted]</code> rather than being removed
+              entirely, so replies stay intact.
+            </p>
+            <h4>Path Parameters</h4>
+            <p>
+              <code>id</code> (number): The comment's numeric ID.
+            </p>
+            <h4>Rate Limit</h4>
+            <p>100 requests over 1 minute, shared across all comment routes</p>
+            <h4>Returns</h4>
+            <details>
+              <summary><b>204 No Content</b></summary>
+              <info
+                >Comment deleted successfully (or was already
+                deleted).</info
+              >
+            </details>
+            <details>
+              <summary><b>400 Bad Request</b></summary>
+              <info>Returns if <code>id</code> isn't a valid integer.</info>
+            </details>
+            <details>
+              <summary><b>401 Unauthorized</b></summary>
+              <info>Returns if not logged in.</info>
+            </details>
+            <details>
+              <summary><b>403 Forbidden</b></summary>
+              <info>Returns if the comment isn't yours.</info>
+            </details>
+            <details>
+              <summary><b>404 Not Found</b></summary>
+              <info>Returns if no comment with that <code>id</code> exists.</info>
             </details>
           </info>
         </details>

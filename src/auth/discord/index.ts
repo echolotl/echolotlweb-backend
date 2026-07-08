@@ -4,8 +4,6 @@ import { Logger } from "../../util/logger";
 import {
   DiscordUserResponse,
   type DiscordTokenResponse,
-  toAuthenticatedUser,
-  toPublicUser,
   MIN_DISCORD_ACCOUNT_AGE_MS,
 } from "./model";
 import {
@@ -23,16 +21,41 @@ import {
   ensureFreshDiscordToken,
   getDiscordAccountCreatedAt,
   SESSION_TTL_MS,
+  toAuthenticatedUser,
+  toPublicUser,
 } from "./service";
 import { FRONTEND_URL } from "../../constants";
 
-const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID!;
-const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET!;
-const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI!;
+function getDiscordOAuthEnv(): {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+} {
+  const clientId = process.env.DISCORD_CLIENT_ID;
+  const clientSecret = process.env.DISCORD_CLIENT_SECRET;
+  const redirectUri = process.env.DISCORD_REDIRECT_URI;
+
+  if (!clientId || !clientSecret || !redirectUri) {
+    throw new Error(
+      "Missing Discord OAuth env vars. Required: DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI.",
+    );
+  }
+
+  return { clientId, clientSecret, redirectUri };
+}
 
 export const discordRouter = new Elysia({ prefix: "/discord" })
-  .use(rateLimit({ duration: 60_000, max: 20 }))
-  .get("/", ({ cookie: { oauth_state }, redirect }) => {
+  .use(rateLimit({ duration: 60_000, max: 20, scoping: "scoped" }))
+  .get("/", ({ cookie: { oauth_state }, redirect, set }) => {
+    let oauth;
+    try {
+      oauth = getDiscordOAuthEnv();
+    } catch (error) {
+      set.status = 500;
+      Logger.error(`Discord OAuth config error: ${error}`);
+      return { error: "Discord OAuth is not configured on the server." };
+    }
+
     const state = crypto.randomUUID();
     oauth_state.set({
       value: state,
@@ -44,8 +67,8 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
     });
 
     const params = new URLSearchParams({
-      client_id: DISCORD_CLIENT_ID,
-      redirect_uri: REDIRECT_URI,
+      client_id: oauth.clientId,
+      redirect_uri: oauth.redirectUri,
       response_type: "code",
       scope: "identify",
       state,
@@ -56,6 +79,15 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
   .get(
     "/authenticate",
     async ({ query, cookie: { oauth_state, session }, redirect, set }) => {
+      let oauth;
+      try {
+        oauth = getDiscordOAuthEnv();
+      } catch (error) {
+        set.status = 500;
+        Logger.error(`Discord OAuth config error: ${error}`);
+        return { error: "Discord OAuth is not configured on the server." };
+      }
+
       const { code, state } = query;
 
       if (!state || state != oauth_state.value) {
@@ -73,11 +105,11 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
-          client_id: DISCORD_CLIENT_ID,
-          client_secret: DISCORD_CLIENT_SECRET,
+          client_id: oauth.clientId,
+          client_secret: oauth.clientSecret,
           grant_type: "authorization_code",
           code: code as string,
-          redirect_uri: REDIRECT_URI,
+          redirect_uri: oauth.redirectUri,
         }),
       });
       if (!tokenRes.ok) {

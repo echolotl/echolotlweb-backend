@@ -1,5 +1,6 @@
 export type Status = {
-    text: string;
-    emoji: string | null;
-    createdAt: number;
-}
+  id: number;
+  text: string;
+  emoji: string | null;
+  createdAt: number;
+};

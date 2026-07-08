@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getStatus, setStatus, getStatuses } from "./service";
 import { rateLimit } from "elysia-rate-limit";
 import { ALLOWED_ORIGINS, STATUS_PASSKEY } from "../constants";
+import { limit, paginate } from "../util/pagination";
 
 export const statusRouter = new Elysia({ prefix: "/status" })
   .use(
@@ -37,15 +38,18 @@ export const statusRouter = new Elysia({ prefix: "/status" })
   .get(
     "/history",
     ({ query }) => {
-      const limit = query.limit || 10;
-      const statuses = getStatuses(limit);
-      const total = statuses.length;
-      if (total === 0) {
+      const pageSize = limit(query.limit);
+      const statuses = getStatuses(pageSize + 1, query.cursor);
+      const { items, nextCursor } = paginate(statuses, pageSize);
+
+      if (items.length === 0) {
         return new Response(null, { status: 204 });
       }
+
       const newJson = {
-        total,
-        statuses,
+        total: items.length,
+        statuses: items,
+        nextCursor,
       };
       return new Response(JSON.stringify(newJson), {
         status: 200,
@@ -55,6 +59,7 @@ export const statusRouter = new Elysia({ prefix: "/status" })
     {
       query: t.Object({
         limit: t.Optional(t.Number()),
+        cursor: t.Optional(t.Number()),
       }),
     },
   )

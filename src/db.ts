@@ -2,6 +2,7 @@ import { Database } from "bun:sqlite";
 import type { SpotifyTokenRecord } from "./spotify/model";
 import type { Status } from "./status/model";
 import { Session, User } from "./auth/discord/model";
+import { Comment } from "./comments/model";
 import { encrypt, decrypt } from "./util/crypto";
 const dbPath = () => {
   const devEnv = process.env.NODE_ENV === "development";
@@ -12,11 +13,11 @@ const db = new Database(dbPath());
 
 // init
 db.run(`
-    CREATE TABLE IF NOT EXISTS spotify_token (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        access_token TEXT NOT NULL,
-        expires_at INTEGER NOT NULL
-    );
+  CREATE TABLE IF NOT EXISTS spotify_token (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    access_token TEXT NOT NULL,
+    expires_at INTEGER NOT NULL
+  );
 
 	CREATE TABLE IF NOT EXISTS statuses (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,8 +51,24 @@ db.run(`
 	);
 
 	CREATE INDEX IF NOT EXISTS idx_sessions_id ON sessions(id);
+
+  CREATE TABLE IF NOT EXISTS comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL REFERENCES users(user_id),
+    slug TEXT NOT NULL, -- the slug of the item the comment is associated with
+    parent_id INTEGER REFERENCES comments(id),
+    body TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    edited_at INTEGER,
+    deleted_at INTEGER
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_comments_slug ON comments(slug);
+  CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON comments(parent_id);
 `);
 
+// -- MIGRATION --
+// Add `user_id` and `anonymous` columns to `users` table if they don't exist
 const userTableColumns = db.query(`PRAGMA table_info(users)`).all() as {
   name: string;
 }[];
@@ -63,6 +80,7 @@ if (!userTableColumns.some((column) => column.name === "user_id")) {
 if (!userTableColumns.some((column) => column.name === "anonymous")) {
   db.run(`ALTER TABLE users ADD COLUMN anonymous INTEGER NOT NULL DEFAULT 0`);
 }
+// ----
 
 db.run(`UPDATE users SET user_id = id WHERE user_id IS NULL OR user_id = ''`);
 db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id)`);
@@ -81,16 +99,24 @@ const getSpotifyTokenStmt = db.prepare(
 );
 
 const getLatestStatusStmt = db.prepare(
-  `SELECT text, emoji, created_at
+  `SELECT id, text, emoji, created_at
 	 FROM statuses
-	 ORDER BY created_at DESC
+	 ORDER BY id DESC
 	 LIMIT 1`,
 );
 
 const getStatusesLimitStmt = db.prepare(
-  `SELECT text, emoji, created_at
+  `SELECT id, text, emoji, created_at
 	 FROM statuses
-	 ORDER BY created_at DESC
+	 ORDER BY id DESC
+	 LIMIT ?`,
+);
+
+const getStatusesLimitCursorStmt = db.prepare(
+  `SELECT id, text, emoji, created_at
+	 FROM statuses
+	 WHERE id < ?
+	 ORDER BY id DESC
 	 LIMIT ?`,
 );
 
@@ -136,6 +162,45 @@ const setUserAnonymousStmt = db.prepare(
   `UPDATE users SET anonymous = $1, updated_at = $2 WHERE id = $3`,
 );
 
+const insertCommentStmt = db.prepare(
+  `INSERT INTO comments (user_id, slug, parent_id, body, created_at, edited_at, deleted_at)
+   VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+);
+
+const getTopLevelCommentsBySlugStmt = db.prepare(
+  `SELECT * FROM comments WHERE slug = $1 AND parent_id IS NULL ORDER BY id ASC LIMIT $2`,
+);
+
+const getTopLevelCommentsBySlugCursorStmt = db.prepare(
+  `SELECT * FROM comments WHERE slug = $1 AND parent_id IS NULL AND id > $2 ORDER BY id ASC LIMIT $3`,
+);
+
+const getCommentsByUserIdStmt = db.prepare(
+  `SELECT * FROM comments WHERE user_id = $1 ORDER BY created_at DESC`,
+);
+
+const getCommentsByUserIdLimitStmt = db.prepare(
+  `SELECT * FROM comments WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2`,
+);
+
+const getCommentByIdStmt = db.prepare(`SELECT * FROM comments WHERE id = $1`);
+
+const getCommentsByParentIdStmt = db.prepare(
+  `SELECT * FROM comments WHERE parent_id = $1 ORDER BY id ASC LIMIT $2`,
+);
+
+const getCommentsByParentIdCursorStmt = db.prepare(
+  `SELECT * FROM comments WHERE parent_id = $1 AND id > $2 ORDER BY id ASC LIMIT $3`,
+);
+
+const editCommentStmt = db.prepare(
+  `UPDATE comments SET body = $1, edited_at = $2 WHERE id = $3 AND deleted_at IS NULL`,
+);
+
+const deleteCommentStmt = db.prepare(
+  `UPDATE comments SET deleted_at = $1 WHERE id = $2 AND deleted_at IS NULL`,
+);
+
 export function upsertSpotifyToken(record: SpotifyTokenRecord): void {
   upsertSpotifyTokenStmt.run(record.accessToken, record.expiresAt);
 }
@@ -158,6 +223,7 @@ export function getSpotifyToken(): SpotifyTokenRecord | null {
 
 export function getLatestStatus(): Status | null {
   const row = getLatestStatusStmt.get() as {
+    id: number;
     text: string;
     emoji: string | null;
     created_at: number;
@@ -168,31 +234,44 @@ export function getLatestStatus(): Status | null {
   }
 
   return {
+    id: row.id,
     text: row.text,
     emoji: row.emoji,
     createdAt: row.created_at,
   };
 }
 
-export function getStatusesLimit(limit: number): Status[] {
-  const rows = getStatusesLimitStmt.all(limit) as {
+export function getStatusesLimit(limit: number, cursor?: number): Status[] {
+  const rows = (
+    cursor === undefined
+      ? getStatusesLimitStmt.all(limit)
+      : getStatusesLimitCursorStmt.all(cursor, limit)
+  ) as {
+    id: number;
     text: string;
     emoji: string | null;
     created_at: number;
   }[];
 
   return rows.map((row) => ({
+    id: row.id,
     text: row.text,
     emoji: row.emoji,
     createdAt: row.created_at,
   }));
 }
 
-export function insertStatus(status: Omit<Status, "createdAt">): Status {
+export function insertStatus(status: Omit<Status, "id" | "createdAt">): Status {
   const createdAt = Date.now();
   insertStatusStmt.run(status.text, status.emoji, createdAt);
+
+  const row = db.query(`SELECT last_insert_rowid() AS id`).get() as {
+    id: number;
+  };
+
   return {
     ...status,
+    id: row.id,
     createdAt,
   };
 }
@@ -230,6 +309,7 @@ export function deleteUser(id: string) {
 }
 
 type UserRow = ChangeType<KeysToSnakeCase<User>, number, "anonymous">;
+type CommentRow = KeysToSnakeCase<Comment>;
 
 function mapUserRow(row: UserRow): User {
   return {
@@ -246,6 +326,19 @@ function mapUserRow(row: UserRow): User {
       ? decrypt(row.access_token)
       : row.access_token,
     tokenExpires: row.token_expires !== null ? Number(row.token_expires) : null,
+  };
+}
+
+function mapCommentRow(row: CommentRow): Comment {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    slug: row.slug,
+    parentId: row.parent_id,
+    body: row.body,
+    createdAt: row.created_at,
+    editedAt: row.edited_at,
+    deletedAt: row.deleted_at,
   };
 }
 
@@ -297,4 +390,97 @@ export function getUserByUserId(userId: string): User | null {
 export function setUserAnonymous(id: string, anonymous: boolean): User | null {
   setUserAnonymousStmt.run(anonymous ? 1 : 0, Date.now(), id);
   return getUserById(id);
+}
+
+export function getCommentById(id: number) {
+  const row = getCommentByIdStmt.get(id) as CommentRow | undefined;
+  if (!row) return null;
+  return mapCommentRow(row);
+}
+
+export function getTopLevelCommentsBySlug(
+  slug: string,
+  limit: number,
+  cursor?: number,
+) {
+  const rows =
+    typeof cursor === "number"
+      ? (getTopLevelCommentsBySlugCursorStmt.all(
+          slug,
+          cursor,
+          limit,
+        ) as CommentRow[])
+      : (getTopLevelCommentsBySlugStmt.all(slug, limit) as CommentRow[]);
+  return rows.map(mapCommentRow);
+}
+
+export function getCommentsByUserId(userId: string, limit?: number) {
+  const rows =
+    typeof limit === "number"
+      ? (getCommentsByUserIdLimitStmt.all(userId, limit) as CommentRow[])
+      : (getCommentsByUserIdStmt.all(userId) as CommentRow[]);
+  return rows.map(mapCommentRow);
+}
+
+export function getCommentsByParentId(
+  parentId: number,
+  limit: number,
+  cursor?: number,
+) {
+  const rows =
+    typeof cursor === "number"
+      ? (getCommentsByParentIdCursorStmt.all(
+          parentId,
+          cursor,
+          limit,
+        ) as CommentRow[])
+      : (getCommentsByParentIdStmt.all(parentId, limit) as CommentRow[]);
+  return rows.map(mapCommentRow);
+}
+
+export function getReplyCounts(parentIds: number[]): Map<number, number> {
+  const counts = new Map<number, number>();
+  if (parentIds.length === 0) return counts;
+
+  const placeholders = parentIds.map((_, i) => `$${i + 1}`).join(", ");
+  const rows = db
+    .query(
+      `SELECT parent_id, COUNT(*) as count FROM comments WHERE parent_id IN (${placeholders}) GROUP BY parent_id`,
+    )
+    .all(...parentIds) as { parent_id: number; count: number }[];
+
+  for (const row of rows) {
+    counts.set(row.parent_id, Number(row.count));
+  }
+  return counts;
+}
+
+export function insertComment(
+  userId: string,
+  slug: string,
+  parentId: number | null,
+  body: string,
+) {
+  const now = Date.now();
+  insertCommentStmt.run(userId, slug, parentId, body, now, null, null);
+
+  const row = db.query(`SELECT last_insert_rowid() AS id`).get() as {
+    id: number;
+  };
+
+  return getCommentById(row.id)!;
+}
+
+export function editComment(id: number, body: string) {
+  const now = Date.now();
+  editCommentStmt.run(body, now, id);
+
+  return getCommentById(id);
+}
+
+export function deleteComment(id: number) {
+  const now = Date.now();
+  deleteCommentStmt.run(now, id);
+
+  return getCommentById(id);
 }

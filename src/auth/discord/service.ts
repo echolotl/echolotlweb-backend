@@ -5,15 +5,14 @@ import {
 } from "../../db";
 import { Logger } from "../../util/logger";
 import {
+  AuthenticatedUser,
   DISCORD_TOKEN_URL,
+  PublicUser,
   type DiscordTokenResponse,
   type User,
 } from "./model";
 
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-
-const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID!;
-const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET!;
 
 const discordLogger = Logger.fmtPackage("DISCORD");
 
@@ -52,8 +51,8 @@ export async function refreshDiscordToken(user: User): Promise<User> {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      client_id: DISCORD_CLIENT_ID,
-      client_secret: DISCORD_CLIENT_SECRET,
+      client_id: process.env.DISCORD_CLIENT_ID!,
+      client_secret: process.env.DISCORD_CLIENT_SECRET!,
       grant_type: "refresh_token",
       refresh_token: user.refreshToken,
     }),
@@ -93,4 +92,38 @@ export async function ensureFreshDiscordToken(user: User): Promise<User> {
   }
 
   return refreshDiscordToken(user);
+}
+
+export function getAvatarUrl(user: User, size: number = 128): string | null {
+  if (!user.avatarHash) {
+    return null;
+  }
+  if (user.avatarHash.startsWith("a_")) {
+    return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatarHash}.webp?animated=true&size=${size}`;
+  }
+  return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatarHash}.webp?size=${size}`;
+}
+
+export function toAuthenticatedUser(user: User): AuthenticatedUser {
+  const { refreshToken, accessToken, tokenExpires, ...authenticatedUser } =
+    user;
+  return authenticatedUser;
+}
+
+export function toPublicUser(user: User): PublicUser {
+  if (user.anonymous) {
+    return {
+      userId: user.userId,
+      username: `anonymous${user.userId.slice(0, 4)}`,
+      displayName: "Anonymous",
+      avatarHash: null,
+    };
+  }
+
+  return {
+    userId: user.userId,
+    username: user.username,
+    displayName: user.displayName,
+    avatarHash: user.avatarHash,
+  };
 }
