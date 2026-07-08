@@ -28,9 +28,11 @@ db.run(`
 	-- Discord OAuth users
 	CREATE TABLE IF NOT EXISTS users (
 	  id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
 		username TEXT NOT NULL,
 		display_name TEXT,
 		avatar_hash TEXT,
+    anonymous INTEGER NOT NULL DEFAULT 0,
 		created_at BIGINT NOT NULL,
 		updated_at BIGINT NOT NULL,
 
