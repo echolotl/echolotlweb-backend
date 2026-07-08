@@ -52,6 +52,19 @@ db.run(`
 	CREATE INDEX IF NOT EXISTS idx_sessions_id ON sessions(id);
 `);
 
+const userTableColumns = db.query(`PRAGMA table_info(users)`).all() as {
+  name: string;
+}[];
+
+if (!userTableColumns.some((column) => column.name === "user_id")) {
+  db.run(`ALTER TABLE users ADD COLUMN user_id TEXT`);
+}
+
+if (!userTableColumns.some((column) => column.name === "anonymous")) {
+  db.run(`ALTER TABLE users ADD COLUMN anonymous INTEGER NOT NULL DEFAULT 0`);
+}
+
+db.run(`UPDATE users SET user_id = id WHERE user_id IS NULL OR user_id = ''`);
 db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id)`);
 
 const upsertSpotifyTokenStmt = db.prepare(
