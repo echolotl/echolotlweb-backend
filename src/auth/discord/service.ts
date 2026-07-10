@@ -4,6 +4,7 @@ import {
   storeUser,
 } from "../../db";
 import { Logger } from "../../util/logger";
+import { sendDiscordWebhook } from "../../util/webhook";
 import {
   AuthenticatedUser,
   DISCORD_TOKEN_URL,
@@ -113,6 +114,7 @@ export function toAuthenticatedUser(user: User): AuthenticatedUser {
 export function toPublicUser(user: User): PublicUser {
   if (user.anonymous) {
     return {
+      id: null,
       userId: user.userId,
       username: `anonymous${user.userId.slice(0, 4)}`,
       displayName: "Anonymous",
@@ -121,9 +123,56 @@ export function toPublicUser(user: User): PublicUser {
   }
 
   return {
+    id: user.id,
     userId: user.userId,
     username: user.username,
     displayName: user.displayName,
     avatarHash: user.avatarHash,
   };
+}
+
+export async function notifyAccountCreated(user: User): Promise<void> {
+  try {
+    await sendDiscordWebhook({
+      content: "New account created",
+      embeds: [
+        {
+          description: `${user.username} (${user.userId})`,
+          timestamp: new Date(user.createdAt).toISOString(),
+          color: 0x00ff00,
+          author: {
+            name: user.username,
+            icon_url: getAvatarUrl(user) ?? undefined,
+          },
+        },
+      ],
+    });
+  } catch (error) {
+    Logger.warning(
+      `${discordLogger}Failed to send account created webhook: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
+export async function notifyAccountDeleted(user: User): Promise<void> {
+  try {
+    await sendDiscordWebhook({
+      content: "Account deleted",
+      embeds: [
+        {
+          description: `${user.username} (${user.userId})`,
+          timestamp: new Date().toISOString(),
+          color: 0xff0000,
+          author: {
+            name: user.username,
+            icon_url: getAvatarUrl(user) ?? undefined,
+          },
+        },
+      ],
+    });
+  } catch (error) {
+    Logger.warning(
+      `${discordLogger}Failed to send account deleted webhook: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }

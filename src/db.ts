@@ -168,11 +168,11 @@ const insertCommentStmt = db.prepare(
 );
 
 const getTopLevelCommentsBySlugStmt = db.prepare(
-  `SELECT * FROM comments WHERE slug = $1 AND parent_id IS NULL ORDER BY id ASC LIMIT $2`,
+  `SELECT * FROM comments WHERE slug = $1 AND parent_id IS NULL ORDER BY id DESC LIMIT $2`,
 );
 
 const getTopLevelCommentsBySlugCursorStmt = db.prepare(
-  `SELECT * FROM comments WHERE slug = $1 AND parent_id IS NULL AND id > $2 ORDER BY id ASC LIMIT $3`,
+  `SELECT * FROM comments WHERE slug = $1 AND parent_id IS NULL AND id < $2 ORDER BY id DESC LIMIT $3`,
 );
 
 const getCommentsByUserIdStmt = db.prepare(

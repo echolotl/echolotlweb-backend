@@ -16,6 +16,7 @@ export interface User {
 }
 
 export interface PublicUser {
+  id: string | null;
   userId: string;
   username: string;
   displayName: string | null;

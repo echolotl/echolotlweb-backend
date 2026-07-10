@@ -20,6 +20,8 @@ import {
   destroySession,
   ensureFreshDiscordToken,
   getDiscordAccountCreatedAt,
+  notifyAccountCreated,
+  notifyAccountDeleted,
   SESSION_TTL_MS,
   toAuthenticatedUser,
   toPublicUser,
@@ -186,6 +188,13 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
         updatedAt: Date.now(),
       });
 
+      if (!existingUser) {
+        const storedUser = getUserById(user.id);
+        if (storedUser) {
+          await notifyAccountCreated(storedUser);
+        }
+      }
+
       const sessionToken = await createSession(user.id);
       session.set({
         value: sessionToken,
@@ -278,6 +287,7 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
       await destroySession(s.token);
     }
     deleteUser(user.id);
+    await notifyAccountDeleted(user);
     return new Response(
       `User ${user.username} (${user.userId}) deleted successfully`,
       { status: 200, headers: { "Content-Type": "text/plain" } },

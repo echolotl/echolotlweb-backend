@@ -8,6 +8,15 @@ import type { Comment, CommentNode, UserComment } from "./model";
 
 const commentsLogger = Logger.fmtPackage("COMMENTS");
 
+const slugNamespaceToLink = (slug: string) => {
+  switch (slug.split(":")[0]) {
+    case "char":
+      return `${FRONTEND_URL}/characters/${slug.split(":")[1]}`;
+    default:
+      return `${FRONTEND_URL}/art/${slug}`;
+  }
+};
+
 export function toCommentNode(comment: Comment, replyCount = 0): CommentNode {
   const user = getUserByUserId(comment.userId);
 
@@ -49,7 +58,7 @@ export async function notifyNewComment(
 ): Promise<void> {
   try {
     await sendDiscordWebhook({
-      content: `New comment on "[${comment.slug}](${FRONTEND_URL}/art/${comment.slug})"`,
+      content: `New comment on [${comment.slug}](${slugNamespaceToLink(comment.slug)})`,
       embeds: [
         {
           description: comment.body,
@@ -78,7 +87,7 @@ export async function notifyNewReply(
 
   try {
     await sendDiscordWebhook({
-      content: `New reply on "[${parent.slug}](${FRONTEND_URL}/art/${parent.slug})"`,
+      content: `New reply on [${parent.slug}](${slugNamespaceToLink(parent.slug)})`,
       embeds: [
         {
           description: parent.body,
@@ -112,7 +121,7 @@ export async function notifyCommentEdited(
 ): Promise<void> {
   try {
     await sendDiscordWebhook({
-      content: `Comment edited on "[${original.slug}](${FRONTEND_URL}/art/${original.slug})"`,
+      content: `Comment edited on [${original.slug}](${slugNamespaceToLink(original.slug)})`,
       embeds: [
         {
           title: "original",
