@@ -10,10 +10,12 @@ import {
   DISCORD_TOKEN_URL,
   PublicUser,
   type DiscordTokenResponse,
+  type DiscordUserResponse,
   type User,
 } from "./model";
 
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+export const PROFILE_REFRESH_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 
 const discordLogger = Logger.fmtPackage("DISCORD");
 
@@ -47,6 +49,23 @@ export async function destroySession(token: string): Promise<void> {
   removeSession(token);
 }
 
+export async function fetchDiscordProfile(
+  accessToken: string,
+): Promise<DiscordUserResponse> {
+  const response = await fetch("https://discord.com/api/users/@me", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to fetch Discord profile: ${response.statusText} - ${errorText}`,
+    );
+  }
+
+  return response.json();
+}
+
 export async function refreshDiscordToken(user: User): Promise<User> {
   const response = await fetch(DISCORD_TOKEN_URL, {
     method: "POST",
@@ -70,8 +89,24 @@ export async function refreshDiscordToken(user: User): Promise<User> {
   const tokenData: DiscordTokenResponse = await response.json();
   const expiresAt = Date.now() + tokenData.expires_in * 1000;
 
+  let profile: DiscordUserResponse | null = null;
+  try {
+    profile = await fetchDiscordProfile(tokenData.access_token);
+  } catch (error) {
+    Logger.warning(
+      `${discordLogger}Failed to refresh Discord profile for ${user.id} during token refresh: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
   const updatedUser: User = {
     ...user,
+    ...(profile
+      ? {
+          username: profile.username,
+          displayName: profile.global_name,
+          avatarHash: profile.avatar,
+        }
+      : {}),
     refreshToken: tokenData.refresh_token,
     accessToken: tokenData.access_token,
     tokenExpires: expiresAt,
@@ -87,12 +122,35 @@ export async function refreshDiscordToken(user: User): Promise<User> {
   return updatedUser;
 }
 
-export async function ensureFreshDiscordToken(user: User): Promise<User> {
-  if (user.tokenExpires && user.tokenExpires > Date.now()) {
+export async function refreshDiscordProfile(user: User): Promise<User> {
+  if (!user.accessToken) {
     return user;
   }
 
-  return refreshDiscordToken(user);
+  try {
+    const profile = await fetchDiscordProfile(user.accessToken);
+
+    const updatedUser: User = {
+      ...user,
+      username: profile.username,
+      displayName: profile.global_name,
+      avatarHash: profile.avatar,
+      updatedAt: Date.now(),
+    };
+
+    storeUser(updatedUser);
+
+    Logger.success(
+      `${discordLogger}Successfully refreshed Discord profile for ${user.id}`,
+    );
+
+    return updatedUser;
+  } catch (error) {
+    Logger.warning(
+      `${discordLogger}Failed to refresh Discord profile for ${user.id}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return user;
+  }
 }
 
 export function getAvatarUrl(user: User, size: number = 128): string | null {

@@ -3,7 +3,7 @@ import cors from "@elysiajs/cors";
 import { z } from "zod";
 import { getStatus, setStatus, getStatuses } from "./service";
 import { rateLimit } from "elysia-rate-limit";
-import { ALLOWED_ORIGINS, STATUS_PASSKEY } from "../constants";
+import { ALLOWED_ORIGINS } from "../constants";
 import { limit, paginate } from "../util/pagination";
 
 export const statusRouter = new Elysia({ prefix: "/status" })
@@ -69,12 +69,12 @@ export const statusRouter = new Elysia({ prefix: "/status" })
       const authHeader = headers.authorization;
       const providedKey = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1];
 
-      if (!STATUS_PASSKEY) {
+      if (!process.env.PASSKEY) {
         return new Response("Server passkey not set", {
           status: 500,
           headers: { "Content-Type": "text/plain" },
         });
-      } else if (!providedKey || providedKey !== STATUS_PASSKEY) {
+      } else if (!providedKey || providedKey !== process.env.PASSKEY) {
         return new Response("Unauthorized", {
           status: 401,
           headers: { "Content-Type": "text/plain" },

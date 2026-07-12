@@ -18,10 +18,13 @@ import {
 import {
   createSession,
   destroySession,
-  ensureFreshDiscordToken,
+  fetchDiscordProfile,
   getDiscordAccountCreatedAt,
   notifyAccountCreated,
   notifyAccountDeleted,
+  PROFILE_REFRESH_INTERVAL_MS,
+  refreshDiscordProfile,
+  refreshDiscordToken,
   SESSION_TTL_MS,
   toAuthenticatedUser,
   toPublicUser,
@@ -144,20 +147,20 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
       const tokenData: DiscordTokenResponse = await tokenRes.json();
       const expiresAt = Date.now() + tokenData.expires_in * 1000;
 
-      const userRes = await fetch("https://discord.com/api/users/@me", {
-        headers: {
-          Authorization: `${tokenData.token_type} ${tokenData.access_token}`,
-        },
-      });
-      if (!userRes.ok) {
+      let user: DiscordUserResponse;
+      try {
+        user = await fetchDiscordProfile(tokenData.access_token);
+      } catch (error) {
         set.status = 502;
+        Logger.error(
+          `Failed to fetch user info from Discord: ${error instanceof Error ? error.message : String(error)}`,
+        );
         return new Response(
           JSON.stringify({ error: "Failed to fetch user info from Discord" }),
           { status: 502, headers: { "Content-Type": "application/json" } },
         );
       }
 
-      const user: DiscordUserResponse = await userRes.json();
       Logger.dim(`Discord login: ${user.username} (${user.id})`);
 
       const accountCreatedAt = getDiscordAccountCreatedAt(user.id);
@@ -226,7 +229,13 @@ export const discordRouter = new Elysia({ prefix: "/discord" })
 
     let freshUser = user;
     try {
-      freshUser = await ensureFreshDiscordToken(user);
+      if (!user.tokenExpires || user.tokenExpires <= Date.now()) {
+        freshUser = await refreshDiscordToken(user);
+      }
+
+      if (Date.now() - user.updatedAt > PROFILE_REFRESH_INTERVAL_MS) {
+        freshUser = await refreshDiscordProfile(user);
+      }
     } catch (error) {
       Logger.error(
         `Failed to refresh Discord token for ${user.id}, logging out: ${error}`,
